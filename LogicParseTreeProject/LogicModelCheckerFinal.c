@@ -10,95 +10,129 @@ int i;
 const int cases=10;
 
 
-int parse(char *g)
+int parse(char *ref)
 {
     /* return 1 if atomic, 2 if  neg, 3 if binary, 4 if exists, 5 if for all, ow 0*/
-    char *ref = g;
+    char *right;
     int scope = 0;
     int flag = 0;
-    int negation = 0;
-    int output = 0;
-    while(*ref)
+    // upScope tells the function how it was called - 0 for at the top level, 1 for at the first expression of a BC and 2 for at the second expression of a BC
+    // before any recursion occurs, upScope is changed, and then after the value is returned, upScope is set back to it's initial value.
+    static int upScope = 0;
+    int scopeContainer = upScope;
+    switch(*ref)
     {
-        //fprintf(stdout, "%d\n", ref-g);
-        switch(*ref)
-        {
-            case 'X':
-                if(ref-g == 0) output = 1;
-                if(negation == 1) negation = 0;
-                ref++;
-                //fprintf(stdout, "%c", *ref);
-                if (*ref != '[') return 0;
-                ref++;
-                //fprintf(stdout, "%c", *ref);
-                if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
-                ref++;
-                //fprintf(stdout, "%c", *ref);
-                if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
-                ref++;
-                //fprintf(stdout, "%c", *ref);
-                if (*ref != ']') return 0;
-                break;
-            case 'A':
-                if(ref-g == 0) output = 5;
-                if(negation == 1) negation = 0;
-                ref++;
-                //fprintf(stdout, "%c", *ref);
-                if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
-                break;
-            case 'E':
-                if(ref-g == 0) output = 4;
-                if(negation == 1) negation = 0;
-                ref++;
-                //fprintf(stdout, "%c", *ref);
-                if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
-                break;
-            case '(':
-                if(ref-g == 0) output = 3;
-                if(negation == 1) negation = 0;
-                scope++;
-                break;
-            case ')':
-                if(negation == 1) return 0;
-                scope--;
-                if(scope < 0) return 0;
-                if (flag != 1) return 0;
-                flag = 0;
-                break;
-            case '>':
-                if(negation == 1) return 0;
-                flag++;
-                break;
-            case 'v':
-                if(negation == 1) return 0;
-                flag++;
-                break;
-            case '^':
-                if(negation == 1) return 0;
-                flag++;
-                break;
-            case '-':
-                if(ref-g == 0) output = 2;
-                negation = 1;
-                break;
-            default:
-                //fprintf(stdout, "%c", *ref);
+        case 'X':
+            // X case is relatively simple, check the next 4 characters fit the scheme.
+            ref++;
+            if (*ref != '[') return 0;
+            ref++;
+            if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
+            ref++;
+            if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
+            ref++;
+            if (*ref != ']') return 0;
+
+            // Thanks to upScope, the function knows what to expect following the atomic formula and can check
+            if(upScope == 0) if(*(ref+1) != 0) return 0;
+            if(upScope == 1) if(!(*(ref+1) == '^' || *(ref+1) == '>' || *(ref+1) == 'v')) return 0;
+            if(upScope == 2) if(*(ref+1) != ')') return 0;
+            return 1;
+            break;
+        case 'A':
+            // Existential formula check the next character, then recurse on the rest
+            ref++;
+            if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
+            ref++;
+
+            // As existential formula never end up at the end of a formula, they don't change the upScope, just pass it on
+            if(parse(ref) == 0)
+            {
+                upScope = scopeContainer;
                 return 0;
-                break;
-        }
-        ref++;
+            }
+            // upScope is executed on both halves of the if statement, so that irrespective of where the function returns control, upScope is maintained.
+            upScope = scopeContainer;
+            return 5;
+            break;
+        case 'E':
+            // Same as above
+            ref++;
+            if (!(*ref == 'x' || *ref == 'y' || *ref == 'z')) return 0;
+            ref++;
+            if(parse(ref) == 0)
+            {
+                upScope = scopeContainer;
+                return 0;
+            }
+            upScope = scopeContainer;
+            return 4;
+            break;
+        case '(':
+            // Checks the first half of the BC by recursing and changing upScope accordingly
+            upScope = 1;
+            if(parse(ref+1) == 0)
+            {
+                upScope = scopeContainer;
+                return 0;
+            }
+            // Once checked, returns upScope back to it's initial value, and continues
+            upScope = scopeContainer;
+
+            // Checks BC by iterating through until equal no of open and close brackets have been met from the start.
+            while(*ref)
+            {
+                switch(*ref)
+                {
+                    case '(':
+                        scope++;
+                        break;
+                    case ')':
+                        if(flag != 1) return 0;
+                        flag = 0;
+                        scope--;
+                        break;
+                    case '^':
+                    case '>':
+                    case 'v':
+                        flag++;
+                        upScope = 2;
+                        if(scope == 1) if(parse(ref+1) == 0)
+                            {
+                                upScope = scopeContainer;
+                                return 0;
+                            }
+                        upScope = scopeContainer;
+                        break;
+                }
+                ref++;
+                if (scope == 0) break;
+            }
+            if (scope != 0) return 0;
+            if(flag != 0) return 0;
+            return 3;
+            break;
+        case '-':
+            ref++;
+            if(parse(ref) == 0)
+            {
+                upScope = scopeContainer;
+                return 0;
+            }
+            upScope = scopeContainer;
+            return 2;
+            break;
+        default:
+            return 0;
+            break;
     }
-    //fprintf(stdout, "Upon reaching the end scope is %d\n", scope);
-    if (scope != 0) return 0;
-    if(flag != 0) return 0;
-    return output;
+
 }
 
 
 
 int eval(char *nm, int edges[no_edges][2], int size, int V[3])
 {
-    fprintf(stdout, "Evaluating %s\n", nm);
     /* returns 1 if formla nm evaluates to true in graph with 'size' nodes, no_edges edges, edges stored in 'edges', variable assignment V.  Otherwise returns 0.*/
     char* ref =  nm;
     int a,b, i;
@@ -111,7 +145,6 @@ int eval(char *nm, int edges[no_edges][2], int size, int V[3])
     {
         case 'X':
             ref += 2;
-            printf("Character tested: %c\n", *ref);
             switch(*ref)
             {
                 case 'x':
@@ -125,7 +158,6 @@ int eval(char *nm, int edges[no_edges][2], int size, int V[3])
                     break;
             }
             ref++;
-            printf("Character tested: %c\n", *ref);
             switch(*ref)
             {
                 case 'x':
@@ -138,10 +170,8 @@ int eval(char *nm, int edges[no_edges][2], int size, int V[3])
                     b = 2;
                     break;
             }
-            printf("Checking X with [%d,%d]\n", V[a], V[b]);
             for(i = 0; i<no_edges; i++)
             {
-                printf("Checking edge [%d,%d]\n", edges[i][0], edges[i][1]);
                 if (edges[i][0] == V[a] && edges[i][1] == V[b]) flag = 1;
             }
             return flag;
@@ -243,9 +273,10 @@ int eval(char *nm, int edges[no_edges][2], int size, int V[3])
                     else return 1;
                     break;
             }
+            break;
     }
 
-
+    return 0;
 }
 
 
@@ -308,12 +339,13 @@ int main()
         }
 
         /*Now check if formula is true in the graph with given variable assignment. */
-        if (eval(name, edges, no_nodes,  W)==1)	fprintf(fpout,"The formula %s is true in G under W\n", name);
-        else fprintf(fpout,"The formula %s is false in G under W\n", name);
+        if (p !=0)
+        {
+            if (eval(name, edges, no_nodes,  W)==1)	fprintf(fpout,"The formula %s is true in G under W\n", name);
+            else fprintf(fpout,"The formula %s is false in G under W\n", name);
+        }
+
     }
 
     return(0);
 }
-
-
-
