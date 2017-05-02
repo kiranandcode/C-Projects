@@ -56,6 +56,8 @@ graph *generateSearchGraph(graph *original, path_matrix *mat);
 
 path_matrix *djikstra(graph *grp, int start);
 
+path_matrix *prims(graph *grp, int start);
+
 path *shortest_path_to_node(path_matrix *path_tree, int to);
 
 graph *getData(FILE *fp);
@@ -68,8 +70,19 @@ void printGraph(const char *spec, graph *grp, FILE *fp);
 
 void printPath(const char *spec, path *pt, FILE *fp);
 
+void printPathMatrix(const char* spec, path_matrix *mat, FILE *fp);
+
 graph *openGraph(const char *fileName);
 
 graph *ford_fulkerson(graph *capacity_graph, int source, int sink);
+
+path_matrix *prenumOrdering(graph *grp, int root);
+
+path_matrix *postnumOrdering(graph *grp, int root);
+
+graph *reverseEdges(graph* grp);
+
+path_matrix *findArticulationPoints(graph *grp);
+
 
 #endif //GRAPHUTILS_GRAPH_H

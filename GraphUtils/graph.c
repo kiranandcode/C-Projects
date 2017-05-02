@@ -13,6 +13,8 @@ int **matrix(int rows, int columns) {
 }
 
 
+
+
 void delete_path_matrix(path_matrix *path_tree) {
     free(path_tree->nearest);
     free(path_tree->costs);
@@ -296,6 +298,76 @@ path_matrix *djikstra(graph *grp, int start) {
 }
 
 
+path_matrix *prims(graph *grp, int start) {
+    if(grp == NULL) {
+        fprintf(stderr, "Error: Fatal - Graph not initialized.\n");
+        return NULL;
+    }
+
+    int *nearest = malloc(sizeof(int)*grp->nodes);
+    int *cost = malloc(sizeof(int)*grp->nodes);
+    int *added = malloc(sizeof(int)*grp->nodes);
+    path_matrix *result = malloc(sizeof(path_matrix));
+    result->root = start;
+    result->costs = cost;
+    result->nearest = nearest;
+
+    // Initialize the arrays
+    int added_nodes = 0;
+    int i;
+    for(i = 0; i<grp->nodes; i++) {
+        nearest[i] = start;
+        cost[i] = -1;
+        added[i] = 0;
+    }
+    cost[start] = 0;
+    int iterations = 0;
+
+
+    while(added_nodes != grp->nodes) {
+        iterations++;
+        if(iterations > DJIKSTRA_LIMIT) {
+
+            fprintf(stderr, "Warning: Prims search exceeded iteration limit");
+            break;
+
+        }
+        // Find the lowest cost
+        int min = -1;
+        int u;
+        for(i = 0; i<grp->nodes; i++) {
+            if(!added[i] && cost[i] != -1) {
+                if(min == -1 || min > cost[i])
+                    min = cost[i], u = i;
+            }
+        }
+        if(min == -1) break;
+
+
+        // Add it to path
+        added[u] = 1;
+        added_nodes++;
+
+
+        // update costs
+        for(i = 0; i<grp->nodes; i++) {
+            if(!added[i]) {
+                if((cost[i] == -1 && grp->graph[u][i] != 0))
+                    nearest[i] = u, cost[i] = grp->graph[u][i];
+                else if(cost[i] != -1 && grp->graph[u][i] != 0 && grp->graph[u][i] < cost[i]) {
+                    cost[i] = grp->graph[u][i];
+                    nearest[i] = u;
+                }
+            }
+        }
+
+
+    }
+    result->nodes = grp->nodes;
+    return result;
+}
+
+
 path *shortest_path_to_node(path_matrix *path_tree, int to) {
 
     if(path_tree == NULL) {
@@ -467,6 +539,18 @@ void printPath(const char *spec, path *pt, FILE *fp) {
 
 }
 
+
+void printPathMatrix(const char* spec, path_matrix *mat, FILE *fp) {
+    int i;
+    for(i = 0; i<mat->nodes; i++) {
+        if(spec != NULL) {
+            fprintf(fp, spec, i, mat->nearest[i], mat->costs[i]);
+        } else {
+            fprintf(fp, "[%d(%d)]: %d\n", i, mat->nearest[i], mat->costs[i]);
+        }
+    }
+}
+
 int value = 1;
 int val = 2;
 
@@ -529,3 +613,291 @@ graph *ford_fulkerson(graph *capacity_graph, int source, int sink) {
     return best_flow;
 
 }
+
+
+path_matrix *prenumOrdering(graph *grp, int root) {
+
+    int *prenum = malloc(sizeof(int) * grp->nodes);
+    int *nearest = malloc(sizeof(int) * grp->nodes);
+
+    int visited[grp->nodes];
+    int i;
+    for (i = 0; i < grp->nodes; i++) {
+        visited[i] = 0;
+        nearest[i] = -1;
+    }
+
+    stack *st;
+
+    st = malloc(sizeof(stack));
+    st->next = NULL;
+    st->node = root;
+    nearest[root] = -1;
+    int visit_count = 0;
+    int num = 0;
+
+    while(visit_count != grp->nodes) {
+        while (st != NULL) {
+            int node = st->node;
+                stack *old = st;
+                st = st->next;
+                free(old);
+
+            if(!visited[node]){
+                visited[node] = 1;
+                visit_count++;
+                prenum[node] = ++num;
+                int added = 0;
+
+                for (i = 0; i < grp->nodes; i++) {
+                    if (grp->graph[node][i] != 0 && !visited[i]) {
+                        added++;
+                        stack *new = malloc(sizeof(stack));
+                        new->next = st;
+                        new->node = i;
+                            nearest[i] = node;
+                        st = new;
+
+                    }
+                }
+            }
+        }
+
+
+        // Find unvisited node, place in stack
+        int unvisit = -1;
+        for(i = 0; i<grp->nodes; i++) {
+            if(!visited[i]) {
+                unvisit = i;
+                break;
+            }
+        }
+
+        if(unvisit == -1) break;
+
+        // Place on stack
+        st = malloc(sizeof(stack));
+        st->next = NULL;
+        st->node = unvisit;
+
+    }
+
+
+    path_matrix *result = malloc(sizeof(path_matrix));
+    result->costs = prenum;
+    result->nearest = nearest;
+    result->nodes = grp->nodes;
+    result->root = root;
+    return result;
+}
+
+path_matrix *postnumOrdering(graph *grp, int root) {
+
+    int *postnum = malloc(sizeof(int) * grp->nodes);
+    int *nearest = malloc(sizeof(int) * grp->nodes);
+
+    int visited[grp->nodes];
+    int onstack[grp->nodes];
+    int i;
+    for (i = 0; i < grp->nodes; i++) {
+        visited[i] = 0;
+        onstack[i] = 0;
+        nearest[i] = -1;
+    }
+
+    stack *st;
+
+    st = malloc(sizeof(stack));
+    st->next = NULL;
+    st->node = root;
+    nearest[root] = -1;
+    int visit_count = 0;
+
+    int num = 0;
+
+    while(visit_count != grp->nodes){
+        while (st != NULL) {
+            int node = st->node;
+            if(!visited[node]) {
+                int added = 0;
+                visited[node] = 1;
+                visit_count++;
+
+            for (i = 0; i < grp->nodes; i++) {
+                if (grp->graph[node][i] != 0 && !visited[i]) {
+                    added++;
+                    stack *new = malloc(sizeof(stack));
+                    new->next = st;
+                    new->node = i;
+                    if(nearest[i] == -1)
+                        nearest[i] = node;
+                    st = new;
+
+                }
+            }
+
+
+
+            if (added == 0) {
+                postnum[node] = ++num;
+                stack *old = st;
+                st = st->next;
+                free(old);
+            }
+            } else {
+                stack *old = st;
+                st = st->next;
+                free(old);
+            }
+
+
+        }
+
+
+        // Find unvisited node, place in stack
+        int unvisit = -1;
+        for(i = 0; i<grp->nodes; i++) {
+            if(!visited[i]) {
+                unvisit = i;
+                break;
+            }
+        }
+
+        if(unvisit == -1) break;
+
+        // Place on stack
+        st = malloc(sizeof(stack));
+        st->next = NULL;
+        st->node = unvisit;
+
+    }
+
+    path_matrix *result = malloc(sizeof(path_matrix));
+    result->costs = postnum;
+    result->nearest = nearest;
+    result->nodes = grp->nodes;
+    result->root = root;
+    return result;
+}
+
+
+graph *reverseEdges(graph* grp) {
+    graph *result = malloc(sizeof(graph));
+
+    result->nodes = grp->nodes;
+    result->validated = 0;
+
+    result->graph = matrix(grp->nodes, grp->nodes);
+
+
+    int i,j;
+
+    for(i = 0; i<grp->nodes; ++i) {
+        for(j = 0; j<grp->nodes; j++) {
+            if(grp->graph[i][j] != 0) {
+                result->graph[j][i] = grp->graph[i][j];
+            }
+        }
+    }
+
+
+    return result;
+}
+
+
+path_matrix *findArticulationPoints(graph *grp){
+    path_matrix *prenum = prenumOrdering(grp, 0);
+    int current = grp->nodes;
+    int low[grp->nodes];
+    int *articulationPointStatus = calloc(sizeof(int), (size_t) grp->nodes);
+    int i;
+
+
+    for(i = 0; i<grp->nodes; i++) {
+        low[i] = -1;
+    }
+
+
+    while(current != 0) {
+        // Find the node with prenum equal to current
+
+        int node = -1;
+
+        for(i = 0; i<grp->nodes; i++) {
+            if(prenum->costs[i] == current) {
+                node = i;
+                break;
+            }
+        }
+
+        if(node == -1) {
+            fprintf(stderr, "Error: Fatal - Prenum did not produce a complete numeration.\n");
+            break;
+        }
+
+        // Calculate low as being the minimum of it's children's low, it's prenum, or the prenum of any node connected
+        // an edge not in the dfs tree
+
+
+        // Find children's low
+        int child_low = -1;
+
+        for (i = 0; i<grp->nodes; ++i) {
+            // If is a child of node
+            if(prenum->nearest[i] == node) {
+                if(child_low == -1 || (low[i] != -1 && low[i] < child_low)) {
+                    child_low = low[i];
+                }
+            }
+        }
+
+        // Find nodes connected to edge but not in graph
+        int non_edge_prenums = -1;
+        for(i = 0; i<grp->nodes; ++i) {
+
+            // Check if edge in graph   and  check if edge not in dfs tree and check whether minimum
+            if((grp->graph[node][i] != 0 || grp->graph[i][node]) && (prenum->nearest[i] != node) && (prenum->nearest[node] != i) && (non_edge_prenums == -1 || prenum->costs[i] < non_edge_prenums)) {
+                non_edge_prenums = prenum->costs[i];
+            }
+        }
+        int min = -1;
+        if(child_low != -1) min = child_low;
+        if(non_edge_prenums != -1) if(min == -1 || min > non_edge_prenums) min = non_edge_prenums;
+
+        if(min == -1 || min > prenum->costs[node]) min = prenum->costs[node];
+        low[node] = min;
+
+        current--;
+    }
+
+    // Root node is an articulation point if it has 2 children
+    int root_children = 0;
+    for(i = 1; i<grp->nodes; i++) {
+        if(prenum->nearest[i] == 0) {
+            root_children++;
+        }
+    }
+
+    if(root_children > 1) articulationPointStatus[0] = 1;
+
+    // For each remaining node, it is not an articulation point if it has children with low >= to it's prenum
+    for(i = 1; i<grp->nodes; i++) {
+        int isArticulation = 0;
+        int j;
+        // Find check children
+        for(j = 1; j<grp->nodes; j++) {
+            // if is a child
+            if(prenum->nearest[j] == i) {
+                if(low[j] >= prenum->costs[i]) isArticulation = 1;
+            }
+        }
+
+        articulationPointStatus[i] = isArticulation;
+    }
+
+    free(prenum->costs);
+    prenum->costs = articulationPointStatus;
+
+    return prenum;
+}
+
