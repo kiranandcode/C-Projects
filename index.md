@@ -25,6 +25,9 @@ This was a solution to a problem given as a university assignment - we were give
 ## [Graph Algorithms](https://github.com/Gopiandcode/C-Projects/tree/master/GraphAlgorithms)
 This was my first attempt at implementing general purpose graph algorithms in C. It also documents my first experience with disjoint set data structures - however, my implementation didn't use a heap-like structure but a linked list implementation given that at the time I didn't know of alternate implementations.
 
+## [Regex Parser and Evaluator](https://github.com/Gopiandcode/C-Projects/tree/master/FiniteAutomata)
+I'm quite proud of this one, it certainly took me a while to fully wrap my head around how to parse the formula while at the same time trying to run Thomson's algorithm. It's part of one of my ongoing projects to implement a transpiler/compiler in C to transpile my own superset variant of C back into plain C - the first step is creating a lexical parser, and to do that, it would be easiest to describe such a system using Regular Expressions. As such I tried my hand at building a regular expression evaluator - currenlty it uses a NFA, and doesn't support the quality of life extension features found in standard regex - however implementing those should be easy as running a preprocessing command on the input.
+
 # Library stuff
 
 ## [General Data Structure Library](https://github.com/Gopiandcode/C-Projects/tree/master/GopiandCode_C_Library)
