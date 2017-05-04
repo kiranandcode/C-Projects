@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#define ESCAPE_CHAR '\\'
 #define isLowerAlpha(x)   ((x) >= 'a' && (x) <= 'z')
 #define isUpperAlpha(x)   ((x) >= 'A' && (x) <= 'Z')
 #define isNumeric(x)      ((x) >= '0' && (x) <= '9')
@@ -89,7 +90,22 @@ NFA_state *parse(char *str_p, NFA_state **endst) {
 #endif
 
     // Check for alphanum status
-    if(isValidLexemme(c)){
+    if(isValidLexemme(c) ||
+            // Or if Escape char move one forward and parse
+            (c == ESCAPE_CHAR)){
+        if(c == ESCAPE_CHAR) {
+            str_p++;
+            // Handle escape codes
+            c = *str_p;
+            switch(c) {
+                case 'e':
+                    c = '\0';
+                    break;
+                default:
+                    break;
+            }
+
+        }
 #ifdef DEBUG
         printf("Parsing alphachar\n");
 #endif
@@ -97,6 +113,9 @@ NFA_state *parse(char *str_p, NFA_state **endst) {
 #ifdef DEBUG
             printf("Parsing without Kleane\n");
 #endif
+
+
+
             NFA_state *nd;
             NFA_state *next = parse(str_p+1, &nd);
             NFA_state *state = getNDA_state();
@@ -158,10 +177,10 @@ NFA_state *parse(char *str_p, NFA_state **endst) {
 
 
                 // Store into array
-                states_st = realloc(states_st, (size_t) ++count);
+                states_st = realloc(states_st, (size_t) ++count*sizeof(struct NDA_state*));
                 states_st[count-1] = subRegex_st;
 
-                states_nd = realloc(states_nd, (size_t)count);
+                states_nd = realloc(states_nd, (size_t)count*sizeof(struct NDA_state*));
                 states_nd[count-1] = end_st;
 
 
@@ -191,12 +210,16 @@ NFA_state *parse(char *str_p, NFA_state **endst) {
 
 
                             // Store into array
-                            states_st = realloc(states_st, (size_t) ++count);
+                            states_st = realloc(states_st, (size_t) ++count*sizeof(struct NDA_state*));
                             states_st[count-1] = subRegex_state;
 
-                            states_nd = realloc(states_nd, (size_t)count);
+                            states_nd = realloc(states_nd, (size_t)count*sizeof(struct NDA_state*));
                             states_nd[count-1] = end_state;
                             }
+                            break;
+                        case ESCAPE_CHAR:
+                            // If escape char, skip next char
+                            str++;
                             break;
                         default:
                             break;
@@ -209,6 +232,11 @@ NFA_state *parse(char *str_p, NFA_state **endst) {
                 printf("I'm breaking out on a %c\n", *str);
 #endif
                 if(*str == ')') break;
+                else{
+                    fprintf(stderr, "Error: Fatal - Could not parse regex formula - is it well defined?");
+                    return NULL;
+                }
+
             }
 #ifdef DEBUG
         printf("1Char lookahead says %c\n", *(str+1));
@@ -407,12 +435,246 @@ void test_NFA_parsing(){
     printf("Testing complete - regex works as expected.\n");
 
 }
+void append(char **string, char c) {
+    if(*string != NULL) {
+    int i = 0;
+    char *ref;
+    for(ref = *string; *ref != '\0'; ref++) i++;
+        (*string) = realloc(*string, (i+2)*sizeof(char));
+        (*string)[i] = c;
+        (*string)[i+1] = '\0';
+    } else {
+        *string = malloc(2*sizeof(char));
+        (*string)[0] = c;
+        (*string)[1] = '\0';
+    }
+    return;
+}
+// Provides support for standard regex codes
+char *pre_parse(char *string){
+    char *ref= string;
+    char *factored = NULL;
+    for(ref = string; *ref != '\0'; ref++) {
+        switch(*ref) {
+            case '[':
+            {   // scan forward until end
+                char *temp;
+                // Check valid before parse
+                for(temp = ref; *temp != '\0' && *temp != ']'; temp++){if(*temp == '\\') temp++;};
+                if(*temp != ']') {
+                    fprintf(stderr, "Error: Fatal - Preparsing error, are you missing a ']'?\n");
+                    if(factored != NULL) free(factored);
+                    return NULL;
+                } else {
+                    append(&factored, '(');
+                    for(temp = ref+1; *temp != '\0' && *temp != ']'; temp++){
+                        if(temp != ref+1)
+                            append(&factored, '|');
+                        if(*temp == '\\') {
+                            temp++;
+                            switch(*(temp)){
+                                case 'w':
+                                    append(&factored, '(');
+                                    append(&factored, 'a');
+                                    append(&factored, '|');
+                                    append(&factored, 'b');
+                                    append(&factored, '|');
+                                    append(&factored, 'c');
+                                    append(&factored, '|');
+                                    append(&factored, 'd');
+                                    append(&factored, '|');
+                                    append(&factored, 'e');
+                                    append(&factored, '|');
+                                    append(&factored, 'f');
+                                    append(&factored, '|');
+                                    append(&factored, 'g');
+                                    append(&factored, '|');
+                                    append(&factored, 'h');
+                                    append(&factored, '|');
+                                    append(&factored, 'i');
+                                    append(&factored, '|');
+                                    append(&factored, 'j');
+                                    append(&factored, '|');
+                                    append(&factored, 'k');
+                                    append(&factored, '|');
+                                    append(&factored, 'l');
+                                    append(&factored, '|');
+                                    append(&factored, 'm');
+                                    append(&factored, '|');
+                                    append(&factored, 'n');
+                                    append(&factored, '|');
+                                    append(&factored, 'o');
+                                    append(&factored, '|');
+                                    append(&factored, 'p');
+                                    append(&factored, '|');
+                                    append(&factored, 'q');
+                                    append(&factored, '|');
+                                    append(&factored, 'r');
+                                    append(&factored, '|');
+                                    append(&factored, 's');
+                                    append(&factored, '|');
+                                    append(&factored, 't');
+                                    append(&factored, '|');
+                                    append(&factored, 'u');
+                                    append(&factored, '|');
+                                    append(&factored, 'v');
+                                    append(&factored, '|');
+                                    append(&factored, 'w');
+                                    append(&factored, '|');
+                                    append(&factored, 'x');
+                                    append(&factored, '|');
+                                    append(&factored, 'y');
+                                    append(&factored, '|');
+                                    append(&factored, 'z');
+                                    append(&factored, ')');
+                                    break;
+                                case 'd':
+                                    append(&factored, '(');
+                                    append(&factored, '0');
+                                    append(&factored, '|');
+                                    append(&factored, '1');
+                                    append(&factored, '|');
+                                    append(&factored, '2');
+                                    append(&factored, '|');
+                                    append(&factored, '3');
+                                    append(&factored, '|');
+                                    append(&factored, '4');
+                                    append(&factored, '|');
+                                    append(&factored, '5');
+                                    append(&factored, '|');
+                                    append(&factored, '6');
+                                    append(&factored, '|');
+                                    append(&factored, '7');
+                                    append(&factored, '|');
+                                    append(&factored, '8');
+                                    append(&factored, '|');
+                                    append(&factored, '9');
+                                    append(&factored, ')');
+                                    break;
+                                default:
+
+
+                                    append(&factored, '\\');
+                                // Skip the escaped character, but append it to result
+                                append(&factored, *temp);
+                                break;
+                            }
+                        } else {
+                            append(&factored, *temp);
+                        }
+                    }
+                    append(&factored, ')');
+                }
+                ref = temp+1;
+            } break;
+            case '\\':
+                    ref++;
+                    switch(*(ref)){
+
+                        case 'w':
+                            append(&factored, '(');
+                            append(&factored, 'a');
+                            append(&factored, '|');
+                            append(&factored, 'b');
+                            append(&factored, '|');
+                            append(&factored, 'c');
+                            append(&factored, '|');
+                            append(&factored, 'd');
+                            append(&factored, '|');
+                            append(&factored, 'e');
+                            append(&factored, '|');
+                            append(&factored, 'f');
+                            append(&factored, '|');
+                            append(&factored, 'g');
+                            append(&factored, '|');
+                            append(&factored, 'h');
+                            append(&factored, '|');
+                            append(&factored, 'i');
+                            append(&factored, '|');
+                            append(&factored, 'j');
+                            append(&factored, '|');
+                            append(&factored, 'k');
+                            append(&factored, '|');
+                            append(&factored, 'l');
+                            append(&factored, '|');
+                            append(&factored, 'm');
+                            append(&factored, '|');
+                            append(&factored, 'n');
+                            append(&factored, '|');
+                            append(&factored, 'o');
+                            append(&factored, '|');
+                            append(&factored, 'p');
+                            append(&factored, '|');
+                            append(&factored, 'q');
+                            append(&factored, '|');
+                            append(&factored, 'r');
+                            append(&factored, '|');
+                            append(&factored, 's');
+                            append(&factored, '|');
+                            append(&factored, 't');
+                            append(&factored, '|');
+                            append(&factored, 'u');
+                            append(&factored, '|');
+                            append(&factored, 'v');
+                            append(&factored, '|');
+                            append(&factored, 'w');
+                            append(&factored, '|');
+                            append(&factored, 'x');
+                            append(&factored, '|');
+                            append(&factored, 'y');
+                            append(&factored, '|');
+                            append(&factored, 'z');
+                            append(&factored, ')');
+                            break;
+                        case 'd':
+                            append(&factored, '(');
+                            append(&factored, '0');
+                            append(&factored, '|');
+                            append(&factored, '1');
+                            append(&factored, '|');
+                            append(&factored, '2');
+                            append(&factored, '|');
+                            append(&factored, '3');
+                            append(&factored, '|');
+                            append(&factored, '4');
+                            append(&factored, '|');
+                            append(&factored, '5');
+                            append(&factored, '|');
+                            append(&factored, '6');
+                            append(&factored, '|');
+                            append(&factored, '7');
+                            append(&factored, '|');
+                            append(&factored, '8');
+                            append(&factored, '|');
+                            append(&factored, '9');
+                            append(&factored, ')');
+                            break;
+                        default:
+
+                            append(&factored, '\\');
+                            // Skip the escaped character, but append it to result
+                            append(&factored, *ref);
+                            break;
+                }
+
+                break;
+            default:
+                append(&factored, *ref);
+        }
+    }
+
+    return factored;
+}
+
 int main() {
-    test_NFA_parsing();
+    //test_NFA_parsing();
     NFA_state *end;
-    NFA_state *result = parse("(A|This) Kiran is the (best|greatest)!", &end);
+
+    char *parsed = pre_parse("\\w*\\[\\d*\\]");
+    printf("%s\n", parsed);
+    NFA_state *result = parse(parsed, &end);
     end->isFinal = 1;
-    if(checkString("This Kiran is the greatest!", result)){
+    if(checkString("a[2]", result)){
         printf("Your string matches the spec my friend!\n");
     } else {
         printf("Er-awww. Wrong string buddy.\n");
