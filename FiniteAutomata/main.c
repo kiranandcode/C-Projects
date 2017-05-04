@@ -1,20 +1,56 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
+
 #define isLowerAlpha(x)   ((x) >= 'a' && (x) <= 'z')
 #define isUpperAlpha(x)   ((x) >= 'A' && (x) <= 'Z')
 #define isNumeric(x)      ((x) >= '0' && (x) <= '9')
 #define isAlphaNum(x)     (isLowerAlpha(x) || isUpperAlpha(x) || isNumeric(x))
+#define isValidLexemme(x)  (isAlphaNum(x) || (x) == ' ' || (x) == '=' || (x) == ';' || (x) == ',' || (x) == '{' || (x) == '}' || (x) == '[' || (x) == ']' || (x) == '!' || (x) == '^' || (x) == '.')
+
+//#define  DEBUG 0
 
 typedef struct NDA_state {
     int edge_count;
     int isFinal;
     char *symbol_guard;
-    struct NDA_state **edges;
-} NDA_state;
+    struct NFA_state **edges;
+} NFA_state;
 
-NDA_state *getNDA_state() {
-    NDA_state *result = malloc(sizeof(NDA_state));
+NFA_state **global_state_table = NULL;
+unsigned long long int global_state_count = 0;
+
+
+void deleteState(NFA_state *state) {
+    if(state->edge_count != 0) {
+        free(state->edges);
+        free(state->symbol_guard);
+    }
+    free(state);
+}
+
+
+void deleteAllStates() {
+    int i;
+    for(i = 0; i<global_state_count; i++) {
+        deleteState(global_state_table[i]);
+        global_state_table[i] = NULL;
+    }
+    if(global_state_table != NULL)
+        free(global_state_table), global_state_table = NULL;
+    global_state_count = 0;
+}
+
+
+NFA_state *getNDA_state() {
+    NFA_state *result = malloc(sizeof(NFA_state));
+
+    // keep a reference to the new state in the state table.
+    global_state_table = realloc(global_state_table, ++global_state_count * sizeof(NFA_state));
+    global_state_table[global_state_count-1] = result;
+
+
     result->edge_count = 0;
     result->isFinal = 0;
     result->edges = NULL;
@@ -22,9 +58,9 @@ NDA_state *getNDA_state() {
     return result;
 }
 
-void addEdge(NDA_state *state, char symbol, NDA_state *to) {
+void addEdge(NFA_state *state, char symbol, NFA_state *to) {
     state->edge_count++;
-    state->edges = realloc(state->edges, sizeof(NDA_state *)*state->edge_count);
+    state->edges = realloc(state->edges, sizeof(NFA_state *)*state->edge_count);
     state->symbol_guard = realloc(state->symbol_guard, sizeof(char)*state->edge_count);
     state->edges[state->edge_count-1] = to;
     state->symbol_guard[state->edge_count-1] = symbol;
@@ -32,9 +68,9 @@ void addEdge(NDA_state *state, char symbol, NDA_state *to) {
 }
 
 // Parse an individual symbol
-void symbol(char *string, NDA_state **start, NDA_state **end) {
-    NDA_state *ed = *end;
-    NDA_state *new = getNDA_state();
+void symbol(char *string, NFA_state **start, NFA_state **end) {
+    NFA_state *ed = *end;
+    NFA_state *new = getNDA_state();
     addEdge(ed, *string, new);
     *end = new;
     *start = ed;
@@ -42,22 +78,28 @@ void symbol(char *string, NDA_state **start, NDA_state **end) {
 }
 
 
-NDA_state *parse(char *str_p, NDA_state **endst) {
+NFA_state *parse(char *str_p, NFA_state **endst) {
     char c = *str_p;
 
     // Check for ending status
     if(c == '|' || c == ')' || c == '\0') return NULL;
 
+#ifdef DEBUG
     printf("Parse called on %c\n", *str_p);
+#endif
 
     // Check for alphanum status
-    if(isAlphaNum(c)){
+    if(isValidLexemme(c)){
+#ifdef DEBUG
         printf("Parsing alphachar\n");
+#endif
         if(*(str_p+1) != '*') {
+#ifdef DEBUG
             printf("Parsing without Kleane\n");
-            NDA_state *nd;
-            NDA_state *next = parse(str_p+1, &nd);
-            NDA_state *state = getNDA_state();
+#endif
+            NFA_state *nd;
+            NFA_state *next = parse(str_p+1, &nd);
+            NFA_state *state = getNDA_state();
             if(next == NULL){
                 next = getNDA_state();
                 if(endst != NULL)
@@ -69,10 +111,12 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
             addEdge(state, c, next);
             return state;
         } else {
+#ifdef DEBUG
             printf("Parsing with Kleane\n");
-            NDA_state *nding;
-            NDA_state *st = getNDA_state();
-            NDA_state *end = parse(str_p+2, &nding);
+#endif
+            NFA_state *nding;
+            NFA_state *st = getNDA_state();
+            NFA_state *end = parse(str_p+2, &nding);
             if(end == NULL){
                 end = getNDA_state();
                 if(endst != NULL) {
@@ -81,8 +125,8 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
             } else if (endst != NULL){
                  *endst = nding;
             }
-            NDA_state *mid = getNDA_state();
-            NDA_state *nd = getNDA_state();
+            NFA_state *mid = getNDA_state();
+            NFA_state *nd = getNDA_state();
             addEdge(mid, c, nd);
             addEdge(nd, '\0', mid);
             addEdge(nd, '\0', end);
@@ -94,20 +138,23 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
 
     // Implement parsing for recursive () expressions
     if(c=='(') {
+
+#ifdef DEBUG
         printf("Parsing subformula\n");
+#endif
         char *str = str_p;
         // Acumulate all sub regexes
 
         // Storing all subregexes into an array of states_st - to be combined at end
-        NDA_state **states_st = NULL;
-        NDA_state **states_nd = NULL;
+        NFA_state **states_st = NULL;
+        NFA_state **states_nd = NULL;
         int count = 0;
 
 
         int scope = 0;
             while(1) {
-                NDA_state *end_st;
-                NDA_state *subRegex_st = parse(str+1, &end_st);
+                NFA_state *end_st;
+                NFA_state *subRegex_st = parse(str+1, &end_st);
 
 
                 // Store into array
@@ -120,8 +167,11 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
 
                 char q;
                 //drop chars until | or ) in scope
-                while(q = *str) {
+                while((q = *str)) {
+
+#ifdef DEBUG
                     printf("Considering %c - the scope is %d\n", q, scope);
+#endif
                     int breaking = 0;
 
                     switch(q) {
@@ -136,16 +186,16 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
                         case '|':
                             {
                             // Drop first character, and parse
-                            NDA_state *end_st;
-                            NDA_state *subRegex_st = parse(str+1, &end_st);
+                            NFA_state *end_state;
+                            NFA_state *subRegex_state = parse(str+1, &end_state);
 
 
                             // Store into array
                             states_st = realloc(states_st, (size_t) ++count);
-                            states_st[count-1] = subRegex_st;
+                            states_st[count-1] = subRegex_state;
 
                             states_nd = realloc(states_nd, (size_t)count);
-                            states_nd[count-1] = end_st;
+                            states_nd[count-1] = end_state;
                             }
                             break;
                         default:
@@ -155,17 +205,25 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
                     if(breaking) break;
                     str++;
                 }
+#ifdef DEBUG
+                printf("I'm breaking out on a %c\n", *str);
+#endif
                 if(*str == ')') break;
             }
+#ifdef DEBUG
+        printf("1Char lookahead says %c\n", *(str+1));
+        printf("Does '\\0' == *(str+1)? let's find out: %d\n", ('\0' == *(str+1)));
+#endif
 
         // Now to combine into a single state system
         // Check if Kleane's system required
         if(*(str+1) != '*') {
-            NDA_state *con_strt = getNDA_state();
-            NDA_state *ending;
-            NDA_state *con_end = NULL;
+
+            NFA_state *con_strt = getNDA_state();
+            NFA_state *ending;
+            NFA_state *con_end = NULL;
             if(*(str+1) != '\0') {
-                con_end = parse(str+2, &ending);
+                con_end = parse(str+1, &ending);
             }
             if(con_end == NULL){
                 con_end = getNDA_state();
@@ -186,12 +244,14 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
             return con_strt;
 
         } else {
+#ifdef DEBUG
             printf("Parsing subformula with Kleane\n");
-            NDA_state *beg = getNDA_state();
-            NDA_state *con_strt = getNDA_state();
-            NDA_state *ending;
-            NDA_state *true_end = parse(str+2, &ending);
-            NDA_state *con_end = getNDA_state();
+#endif
+            NFA_state *beg = getNDA_state();
+            NFA_state *con_strt = getNDA_state();
+            NFA_state *ending;
+            NFA_state *true_end = parse(str+2, &ending);
+            NFA_state *con_end = getNDA_state();
 
             if(true_end == NULL){
                 true_end = getNDA_state();
@@ -225,9 +285,137 @@ NDA_state *parse(char *str_p, NDA_state **endst) {
 
 }
 
+bool checkString(char *string, NFA_state *state) {
+    int i;
+    // Vacuously true
+    if(state->isFinal == 1){
+        if(*string == '\0')
+            return 1;
 
+    }
+
+    for(i =0; i<state->edge_count;i++) {
+
+        char c = state->symbol_guard[i];
+
+        switch(c) {
+            case '\0':
+                if(checkString(string, (NFA_state *) state->edges[i]))
+                    return 1;
+                break;
+            default:
+                if(c == *string)
+                    if(checkString(string+1, (NFA_state *) state->edges[i]) == 1)
+                        return 1;
+        }
+    }
+
+
+    return 0;
+
+}
+
+
+void test_NFA_parsing(){
+
+    deleteAllStates();
+
+    NFA_state *end;
+    NFA_state *regex;
+
+
+    regex = parse("a", &end);
+    end->isFinal = 1;
+
+
+    assert(checkString("a", regex) == 1);
+    assert(checkString("b", regex) == 0);
+    assert(checkString("ab", regex) == 0);
+    assert(checkString("abc", regex) == 0);
+
+    deleteAllStates();
+
+
+    regex = parse("(a|b)", &end);
+    end->isFinal = 1;
+
+    assert(checkString("a", regex) == 1);
+    assert(checkString("b", regex) == 1);
+    assert(checkString("ab", regex) == 0);
+    assert(checkString("abc", regex) == 0);
+
+
+    deleteAllStates();
+
+    regex = parse("a*", &end);
+    end->isFinal = 1;
+
+    assert(checkString("a", regex) == 1);
+    assert(checkString("aa", regex) == 1);
+    assert(checkString("aaaaaaaaa", regex) == 1);
+    assert(checkString("aaab", regex) == 0);
+    assert(checkString("aaaba", regex) == 0);
+    assert(checkString("baaaaa", regex) == 0);
+    assert(checkString("bbbbb", regex) == 0);
+
+
+    deleteAllStates();
+
+    regex = parse("(a|b)*", &end);
+    end->isFinal = 1;
+
+
+    assert(checkString("a", regex) == 1);
+    assert(checkString("aa", regex) == 1);
+    assert(checkString("aaaaaaaaa", regex) == 1);
+    assert(checkString("aaab", regex) == 1);
+    assert(checkString("aaaba", regex) == 1);
+    assert(checkString("baaaaa", regex) == 1);
+    assert(checkString("bbbbb", regex) == 1);
+    assert(checkString("as", regex) == 0);
+    assert(checkString("aas", regex) == 0);
+    assert(checkString("aaaaaaaasa", regex) == 0);
+    assert(checkString("aaabs", regex) == 0);
+    assert(checkString("aaabas", regex) == 0);
+    assert(checkString("baaaaas", regex) == 0);
+    assert(checkString("bbbsbb", regex) == 0);
+
+
+    deleteAllStates();
+
+    regex = parse("(a|b)*s", &end);
+    end->isFinal = 1;
+
+    assert(checkString("as", regex) == 1);
+    assert(checkString("aas", regex) == 1);
+    assert(checkString("aaaaaaaaas", regex) == 1);
+    assert(checkString("aaabs", regex) == 1);
+    assert(checkString("aaabas", regex) == 1);
+    assert(checkString("baaaaas", regex) == 1);
+    assert(checkString("bbbbbs", regex) == 1);
+    assert(checkString("as", regex) == 1);
+    assert(checkString("aas", regex) == 1);
+    assert(checkString("aaaaaaaasa", regex) == 0);
+    assert(checkString("aaabs", regex) == 1);
+    assert(checkString("aaabas", regex) == 1);
+    assert(checkString("baaaaas", regex) == 1);
+    assert(checkString("bbbsbb", regex) == 0);
+
+    deleteAllStates();
+
+
+    printf("Testing complete - regex works as expected.\n");
+
+}
 int main() {
-    NDA_state *result = parse("((a*|b)cd)*", NULL);
-    printf("Hello, World!\n");
+    test_NFA_parsing();
+    NFA_state *end;
+    NFA_state *result = parse("(A|This) Kiran is the (best|greatest)!", &end);
+    end->isFinal = 1;
+    if(checkString("This Kiran is the greatest!", result)){
+        printf("Your string matches the spec my friend!\n");
+    } else {
+        printf("Er-awww. Wrong string buddy.\n");
+    }
     return 0;
 }
