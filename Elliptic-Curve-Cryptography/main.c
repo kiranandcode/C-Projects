@@ -130,23 +130,235 @@ void int_mul(BIGINT *a, BIGINT *b, BIGINT *c) {
 
     int_null(c);
     for(i = INTMAX; i>INTMAX/2; i--) {
+
+        // For each HALFSIZE Digit
         ea = a->hw[i];
         int_null(&sum);
+
+
         for(j=INTMAX; j>INTMAX/2; j--) {
+            // Multiply by the all other digits
             eb = b->hw[j];
-            k = i + j - INTMAX;
-            mul = ea * eb + sum.hw[k];
-            sum.hw[k] = mul & LOMASK;
-            sum.hw[k-1] = mul >> HALFSIZE;
+
+            // As i iterates from IntMax to IntMax/2
+                // As j iterates from IntMax to IntMax/2
+                    // k iterates from IntMax to Intmax/2, then Intmax/2 to 0
+
+                        k = i + j - INTMAX;
+                        mul = ea * eb + sum.hw[k];
+
+
+                        // Add the lower half to it's location
+                        sum.hw[k] = mul & LOMASK;
+
+                        // Add the upper half to the next digit over
+                        sum.hw[k-1] = mul >> HALFSIZE;
         }
+
+        // Finally add the resulting sum to the accumulator
         int_add(&sum, c, c);
     }
 }
 
+void int_div(BIGINT *top, BIGINT *bottom, BIGINT *quotient, BIGINT *remainder) {
+    BIGINT d,e;
+    ELEMENT mask;
+    INDEX l,m,n,i,j;
+    int_copy(bottom, &e);
+    int_copy(top, &d);
+    l = (INTMAX +1) * HALFSIZE;
+
+    // These two loops find the MSB location (in bits) and set L equal to it
+    for(i = 0; i<=INTMAX; i++) {
+        // First, find the chunk where numbers start
+        if(!d.hw[i]) l -= HALFSIZE;
+        else break;
+    }
+
+    mask = MSB_HW;
+    for(j=0; j<HALFSIZE; j++) {
+        // Then loop back until the msb is found
+        if(!(d.hw[i] & mask)){
+            l--;
+            mask >>= 1;
+        }
+        else break;
+    }
+
+    m = (INTMAX +1) * HALFSIZE;
+
+    for(i = 0; i<=INTMAX; i++) {
+        if(!e.hw[i]) m-= HALFSIZE;
+        else break;
+    }
+    mask = MSB_HW;
+    for(j =0; j<HALFSIZE; j++) {
+        if(!(e.hw[i] & mask)) {
+            m--;
+            mask >>= 1;
+        }
+        else break;
+    }
+
+    // Not complete division - does not check for division by 0 error, this check is for
+    // division by 1
+    if(!m) {
+        int_copy(top, quotient);
+        int_null(remainder);
+        return;
+    }
+
+    // If bottom larger than top, division returns 0
+    if(!l | (l<m)) {
+        int_null(quotient);
+        int_copy(top,remainder);
+        return;
+    }
+
+
+    // To do division, shift bottom bits to top i.e
+    //            3889 / 5
+    //            ---------
+    //            38
+    //          /  5
+    //             38
+    //              5
+    //        ..... and so on.
+
+
+    n = l-m; // The difference between the msb of the denominator and the numerator - the distance to be shifted
+    i = n;
+    // First loop aligns the chunks
+    // Obviously, as n is in bits, i > HALFSIZE is equivalent to saying the chunk represented by i is greater than 0
+    while (i > HALFSIZE) {
+        // Shift all the bits up one
+        for(j=0; j<INTMAX; j++) e.hw[j] = e.hw[j+1];
+        i-= HALFSIZE;
+        // All the bits have been shifted up one, so now a 0 exists in the last place
+        e.hw[INTMAX] = 0;
+    }
+
+    mask = 0;
+    // This loop aligns the bits
+    while(i > 0) {
+        // Then we shift each section up bits until the MSB's align
+        INTLOOP(j){
+            // The mask stuff is to bring over the carry bit to the next chunk if necassary.
+            e.hw[j] = (e.hw[j] << 1) | mask;
+            mask = e.hw[j] & CARRY ? 1 : 0;
+            e.hw[j] &= LOMASK;
+        }
+        i--;
+    }
+
+
+    int_null(quotient);
+    while(n>=0) {
+        // Finding the start index of the numbers
+        i = INTMAX - l/HALFSIZE;
+        // Finding the end index of the denominator
+        j = INTMAX - n/HALFSIZE;
+
+        // Loop iterates through the chunks until a differing pair is found
+        while((d.hw[i] == e.hw[i]) && (i < INTMAX)) i++;
+
+        // if the denominator can be subtracted from the numerator, subtract and store the result in the numerator
+        if(d.hw[i] >= e.hw[i]) {
+            int_sub(&d, &e, &d);
+            // Find the corresponding location in the quotient
+            // Modulo HALFSIZE to put a corresponding bit in the quotient.
+            // Simmilar to how we divide and find the closest integer such that a*int = b, in binary, it's either it divides or doesn't.
+            mask = 1L << (n % HALFSIZE);
+            quotient->hw[j] |= mask;
+        }
+
+        INTLOOP(j){
+            // decrement the denominator by unit - (this involves shifting each chunk by one, carrying the bit if necassary)
+            if(j) mask = (e.hw[j-1] & 1) ? CARRY : 0;
+            else mask = 0;
+            e.hw[j] = (e.hw[j] | mask) >> 1;
+        }
+        n--;
+        l--;
+    }
+    int_copy(&d, remainder);
+}
+
+void ascii_to_bigint(char *instring, BIGINT *outhex) {
+    ELEMENT       ch;
+    BIGINT        ten, digit, temp;
+    INDEX         i = 0;
+
+    int_null(&ten);
+    // Tens is a bigint storing powers of 10 for representing the values.
+    ten.hw[INTMAX] = 0xA;
+    int_null(&digit);
+    int_null(outhex);
+
+    while(ch=*instring++){
+        // Quick, crude way to convert an ASCII number into binary representation
+        // Why? ASCII numbers '0' to '9' exist between the range 110000 to 1101001.
+        //      Thus by keeping only the first 4 bits, we can quickly convert a valid
+        //      ASCII character to it's binary representation
+        digit.hw[INTMAX] = ch & 0xF;
+        // Multiply the prior stored value by 10
+        int_mul(outhex, &ten, &temp);
+        // Add Value - (first check if valid input).
+        if(digit.hw[INTMAX] > 9) continue;
+
+        int_add(&temp, &digit, outhex);
+    }
+}
+
+
+void bigint_to_ascii(BIGINT *inhex, char *outstring) {
+    BIGINT top, ten, quotient, remainder;
+    ELEMENT check;
+    INDEX i;
+    int_copy( inhex, &top);
+
+    // Create a 10 value constant
+    int_null(&ten);
+    ten.hw[INTMAX] = 0xA;
+
+    // Clear the string
+    for(i = 0; i<MAXSTRING; i++) *outstring++ = ' ';
+    *outstring-- = 0;
+
+    check = 1;
+    while(check) {
+        int_div(&top, &ten, &quotient, &remainder);
+
+        // Sneaky convert from binary to ascii
+        *outstring-- = remainder.hw[INTMAX] | '0';
+
+        check = 0;
+
+        // Check remains false if all the chunks in the quotient are zero
+        INTLOOP(i) check |= quotient.hw[i];
+
+        // Replace the value by it's quotient
+        int_copy(&quotient, &top);
+
+    }
+}
 
 int main() {
-    debug_print_binary(HIMASK);
-    debug_print_binary(CARRY);
+    BIGINT a;
+    BIGINT b;
+    BIGINT c;
+    int_null(&a);
+    int_null(&b);
+    int_null(&c);
+    ascii_to_bigint("10", &b);
+    ascii_to_bigint("123", &a);
+    int_mul(&a,&b,&c);
+    char *buffer[MAXSTRING];
+    bigint_to_ascii(&c,buffer);
+
+    printf("%s\n", buffer);
+
+    debug_print_binary('b'&0xf);
     printf("%d\n", sizeof(unsigned long) * 8);
     return 0;
 }
