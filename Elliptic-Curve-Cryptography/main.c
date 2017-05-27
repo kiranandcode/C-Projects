@@ -244,6 +244,8 @@ void int_div(BIGINT *top, BIGINT *bottom, BIGINT *quotient, BIGINT *remainder) {
         // Then we shift each section up bits until the MSB's align
         INTLOOP(j){
             // The mask stuff is to bring over the carry bit to the next chunk if necassary.
+	
+	
             e.hw[j] = (e.hw[j] << 1) | mask;
             mask = e.hw[j] & CARRY ? 1 : 0;
             e.hw[j] &= LOMASK;
@@ -343,11 +345,106 @@ void bigint_to_ascii(BIGINT *inhex, char *outstring) {
     }
 }
 
+
+// Fast integer division by two using a right shift(Big Endian format)
+void int_div2(BIGINT *x){
+	INDEX j;
+	ELEMENT mask;
+
+	INTLOOP(j) {
+		if(j) mask = (x->hw[j-1] & 1) ? CARRY : 0;
+		else mask = 0;
+		x->hw[j] = (x->hw[j] | mask) >> 1;
+
+	}
+
+}
+
+void int_gcd(BIGINT *u, BIGINT *v, BIGINT *w) {
+	INDEX k, i, flag;
+	ELEMENT check, carry_bit;
+	BIGINT t, U, V;
+
+	// Make a copy of the input to prevent modification.
+	int_copy(u, &U);
+	int_copy(v, &V);
+
+	// Counter K will keep track of common powers of two for both inputs.
+	// Provides efficiency due to fast division by two through right shifts.
+	k = 0;
+	while(!(U.hw[INTMAX] & 1 || V.hw[INTMAX] & 1)){
+		k++;
+		int_div2(&U);
+		int_div2(&V);
+
+	}
+	
+	// If an even value remains, place it in T
+	if(U.hw[INTMAX] &1) {
+		int_copy(&V, &t);
+		flag = -1;
+	} else {
+		int_copy(&U, &t);
+		flag = 1;
+	}
+
+
+	check = 0;
+	// Check is a variable used to test whether t == 0
+	INTLOOP(i) check |= t.hw[i];
+	while(check) {
+		// Remove the factors of 2
+		while(!(t.hw[INTMAX] & 1)) int_div2(&t);
+		
+
+		// Having divided the value, place it back into it's original variable
+		if(flag > 0) int_copy(&t, &U);
+		else int_copy(&t, &V);
+
+		// Set t = v-u
+		
+		int_sub(&U, &V, &t);
+
+		// Make sure the resulting value is positive.
+		if(t.hw[0] & MSB_HW) {
+			flag = -1;
+			int_neg(&t);
+		}
+		else flag = 1;
+
+		check = 0;
+
+		INTLOOP(i) check |= t.hw[i];
+	}
+
+	// Once finished, apply extracted common multiples of 2 (stored in k) back into the value
+	
+	int_copy(&U, w);
+
+	while(k > HALFSIZE) {
+		for(i = 0; i<INTMAX; i++)w->hw[i] = w->hw[i+1];
+		k-= HALFSIZE;
+		w->hw[INTMAX] = 0;
+	}
+	carry_bit = 0;
+	while(k>0) {
+		INTLOOP(i) {
+			w->hw[i] = (w->hw[i] << 1) | carry_bit;
+			carry_bit = w->hw[i] & CARRY ? 1: 0;
+			w->hw[i] &= LOMASK;
+		}
+		k--;
+
+	}
+
+}
+
 int main() {
     BIGINT a;
     BIGINT b;
     BIGINT c;
     int_null(&a);
+
     int_null(&b);
     int_null(&c);
     ascii_to_bigint("10", &b);
