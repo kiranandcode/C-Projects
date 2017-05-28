@@ -60,7 +60,7 @@ void debug_print_binary(unsigned long long int value) {
         else vals[i] = '1';
         val /= 2;
     }
-   vals[size] = '\0';
+    vals[size] = '\0';
 
     printf("%s\n",vals);
 
@@ -141,18 +141,18 @@ void int_mul(BIGINT *a, BIGINT *b, BIGINT *c) {
             eb = b->hw[j];
 
             // As i iterates from IntMax to IntMax/2
-                // As j iterates from IntMax to IntMax/2
-                    // k iterates from IntMax to Intmax/2, then Intmax/2 to 0
+            // As j iterates from IntMax to IntMax/2
+            // k iterates from IntMax to Intmax/2, then Intmax/2 to 0
 
-                        k = i + j - INTMAX;
-                        mul = ea * eb + sum.hw[k];
+            k = i + j - INTMAX;
+            mul = ea * eb + sum.hw[k];
 
 
-                        // Add the lower half to it's location
-                        sum.hw[k] = mul & LOMASK;
+            // Add the lower half to it's location
+            sum.hw[k] = mul & LOMASK;
 
-                        // Add the upper half to the next digit over
-                        sum.hw[k-1] = mul >> HALFSIZE;
+            // Add the upper half to the next digit over
+            sum.hw[k-1] = mul >> HALFSIZE;
         }
 
         // Finally add the resulting sum to the accumulator
@@ -244,8 +244,8 @@ void int_div(BIGINT *top, BIGINT *bottom, BIGINT *quotient, BIGINT *remainder) {
         // Then we shift each section up bits until the MSB's align
         INTLOOP(j){
             // The mask stuff is to bring over the carry bit to the next chunk if necassary.
-	
-	
+
+
             e.hw[j] = (e.hw[j] << 1) | mask;
             mask = e.hw[j] & CARRY ? 1 : 0;
             e.hw[j] &= LOMASK;
@@ -348,95 +348,180 @@ void bigint_to_ascii(BIGINT *inhex, char *outstring) {
 
 // Fast integer division by two using a right shift(Big Endian format)
 void int_div2(BIGINT *x){
-	INDEX j;
-	ELEMENT mask;
+    INDEX j;
+    ELEMENT mask;
 
-	INTLOOP(j) {
-		if(j) mask = (x->hw[j-1] & 1) ? CARRY : 0;
-		else mask = 0;
-		x->hw[j] = (x->hw[j] | mask) >> 1;
+    INTLOOP(j) {
+        if(j) mask = (x->hw[j-1] & 1) ? CARRY : 0;
+        else mask = 0;
+        x->hw[j] = (x->hw[j] | mask) >> 1;
 
-	}
+    }
 
 }
 
 void int_gcd(BIGINT *u, BIGINT *v, BIGINT *w) {
-	INDEX k, i, flag;
-	ELEMENT check, carry_bit;
-	BIGINT t, U, V;
+    INDEX k, i, flag;
+    ELEMENT check, carry_bit;
+    BIGINT t, U, V;
 
-	// Make a copy of the input to prevent modification.
-	int_copy(u, &U);
-	int_copy(v, &V);
+    // Make a copy of the input to prevent modification.
+    int_copy(u, &U);
+    int_copy(v, &V);
 
-	// Counter K will keep track of common powers of two for both inputs.
-	// Provides efficiency due to fast division by two through right shifts.
-	k = 0;
-	while(!(U.hw[INTMAX] & 1 || V.hw[INTMAX] & 1)){
-		k++;
-		int_div2(&U);
-		int_div2(&V);
+    // Counter K will keep track of common powers of two for both inputs.
+    // Provides efficiency due to fast division by two through right shifts.
+    k = 0;
+    while(!(U.hw[INTMAX] & 1 || V.hw[INTMAX] & 1)){
+        k++;
+        int_div2(&U);
+        int_div2(&V);
 
-	}
-	
-	// If an even value remains, place it in T
-	if(U.hw[INTMAX] &1) {
-		int_copy(&V, &t);
-		flag = -1;
-	} else {
-		int_copy(&U, &t);
-		flag = 1;
-	}
+    }
+
+    // If an even value remains, place it in T
+    if(U.hw[INTMAX] &1) {
+        int_copy(&V, &t);
+        flag = -1;
+    } else {
+        int_copy(&U, &t);
+        flag = 1;
+    }
 
 
-	check = 0;
-	// Check is a variable used to test whether t == 0
-	INTLOOP(i) check |= t.hw[i];
-	while(check) {
-		// Remove the factors of 2
-		while(!(t.hw[INTMAX] & 1)) int_div2(&t);
-		
+    check = 0;
+    // Check is a variable used to test whether t == 0
+    INTLOOP(i) check |= t.hw[i];
+    while(check) {
+        // Remove the factors of 2
+        while(!(t.hw[INTMAX] & 1)) int_div2(&t);
 
-		// Having divided the value, place it back into it's original variable
-		if(flag > 0) int_copy(&t, &U);
-		else int_copy(&t, &V);
 
-		// Set t = v-u
-		
-		int_sub(&U, &V, &t);
+        // Having divided the value, place it back into it's original variable
+        if(flag > 0) int_copy(&t, &U);
+        else int_copy(&t, &V);
 
-		// Make sure the resulting value is positive.
-		if(t.hw[0] & MSB_HW) {
-			flag = -1;
-			int_neg(&t);
-		}
-		else flag = 1;
+        // Set t = v-u
 
-		check = 0;
+        int_sub(&U, &V, &t);
 
-		INTLOOP(i) check |= t.hw[i];
-	}
+        // Make sure the resulting value is positive.
+        if(t.hw[0] & MSB_HW) {
+            flag = -1;
+            int_neg(&t);
+        }
+        else flag = 1;
 
-	// Once finished, apply extracted common multiples of 2 (stored in k) back into the value
-	
-	int_copy(&U, w);
+        check = 0;
 
-	while(k > HALFSIZE) {
-		for(i = 0; i<INTMAX; i++)w->hw[i] = w->hw[i+1];
-		k-= HALFSIZE;
-		w->hw[INTMAX] = 0;
-	}
-	carry_bit = 0;
-	while(k>0) {
-		INTLOOP(i) {
-			w->hw[i] = (w->hw[i] << 1) | carry_bit;
-			carry_bit = w->hw[i] & CARRY ? 1: 0;
-			w->hw[i] &= LOMASK;
-		}
-		k--;
+        INTLOOP(i) check |= t.hw[i];
+    }
 
-	}
+    // Once finished, apply extracted common multiples of 2 (stored in k) back into the value
 
+    int_copy(&U, w);
+
+    while(k > HALFSIZE) {
+        for(i = 0; i<INTMAX; i++)w->hw[i] = w->hw[i+1];
+        k-= HALFSIZE;
+        w->hw[INTMAX] = 0;
+    }
+    carry_bit = 0;
+    while(k>0) {
+        INTLOOP(i) {
+            w->hw[i] = (w->hw[i] << 1) | carry_bit;
+            carry_bit = w->hw[i] & CARRY ? 1: 0;
+            w->hw[i] &= LOMASK;
+        }
+        k--;
+
+    }
+
+}
+
+// Calculates x ^ n mod q into z
+void mod_exp(BIGINT *x, BIGINT *n, BIGINT *q, BIGINT *z) {
+    BIGINT N, Y, Z, temp, dummy;
+    ELEMENT check;
+    INDEX i;
+
+
+    // Y will be 1 initially
+    int_copy(n, &N);
+    int_null(&Y);
+    Y.hw[INTMAX] = 1;
+    int_copy(x, &Z);
+
+    // Checking for 0
+    check = 0 ;
+    INTLOOP(i) check |= N.hw[i];
+
+    // Loop invariant Y * Z ^ N == x ^ n mod q
+    // Initially, Y = 1, Z = x, N = n, thus true at loop start
+    while(check) {
+
+        // (Y*Z)^N == x^n mod q
+
+        // If odd
+        if(N.hw[INTMAX] & 1) {
+            // Y * Z * Z ^ (N-1) == x ^ n mod q
+
+            // Update Y with Y*Z mod q
+
+            int_mul(&Y, &Z, &temp);
+            int_div(&temp, q, &dummy, &Y);
+
+
+            // Y * Z ^ (N-1) == x ^ n mod q
+        }
+
+
+        // Divide N by two, as N-1 / 2 == N/2 (integer division)
+        // Y * (Z ^ 2) ^ (N/2) == x ^ n mod q
+        int_div2(&N);
+        int_mul(&Z, &Z, &temp);
+        int_div(&temp, q, &dummy, &Z);
+        // Y * Z ^ N == x ^ n mod q      ====> Invariant
+
+        // Finally, update loop condition
+        check = 0;
+        INTLOOP(i) check |= N.hw[i];
+    }
+    int_copy(&Y, z);
+}
+
+// Finds the inverse of a mod b and puts it into x
+void mod_inv(BIGINT *a, BIGINT *b, BIGINT *x) {
+    BIGINT m,n,p0,p1,p2,q,r,temp,dummy;
+    ELEMENT check;
+    INDEX sw, i;
+
+    sw = 1;
+    int_copy(b, &m);
+    int_copy(b, &m);
+    int_null(&p0);
+    p0.hw[INTMAX] = 1;
+    int_div(&m, &n, &p1, &r);
+    int_copy(&p1, &q);
+
+    check = 0;
+    INTLOOP(i) check |= r.hw[i];
+    while(check) {
+        sw = -sw;
+        int_copy(&n, &m);
+        int_copy(&r, &n);
+        int_div(&m, &n, &q, &r);
+        int_mul(&q, &p1, &temp);
+        int_add(&temp, &p0, &temp);
+        int_div(&temp, b, &dummy, &p2);
+        int_copy(&p1, &p0);
+        int_copy(&p2, &p1);
+        check = 0;
+        INTLOOP(i) check |= r.hw[i];
+    }
+
+    if(sw < 0) int_sub(b, &p0, x);
+    else int_copy(&p0,x);
 }
 
 int main() {
@@ -447,9 +532,9 @@ int main() {
 
     int_null(&b);
     int_null(&c);
-    ascii_to_bigint("10", &b);
-    ascii_to_bigint("123", &a);
-    int_mul(&a,&b,&c);
+    ascii_to_bigint("7", &b);
+    ascii_to_bigint("5", &a);
+    mod_inv(&a,&b,&c);
     char *buffer[MAXSTRING];
     bigint_to_ascii(&c,buffer);
 
