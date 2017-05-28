@@ -26,3 +26,8 @@ of the more complex subject at hand, Elliptic curve cryptography.
 More code from the book, mainly implementing the extended GCD algorithm in terms of the BIGINT number system introduced earlier
 into the book. While I have covered the GCD division algorithm in a First-Year CS Maths course, it was the first time I had met the 
 computerized version. 
+
+## Update 4: 28th May 2017 - Modular Inverses and Powers
+Implemented more code from the book. This time added modular inverse and power functions. For the modular power function, I was able
+to use loop invariants (Hooare Logic) to provide some extra proof behind it's correctness. At the momeent I don't fully understand the modular inverse code - I need to work through some examples on paper before I can gain a better understanding of the method behind that. Should be able
+to add in the extra explanatory comments soon.
