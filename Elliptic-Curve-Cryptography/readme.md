@@ -21,3 +21,8 @@ Wrapping my head around this stuff certainly took a while - for the purpose of t
 this BIGINT implementation, however, afterwards I want to implement my own arbitrary size version of the implementation.
 Also have a look into how to optimize this kind of coding construct. We'll keep it simple for now to aid the digestion
 of the more complex subject at hand, Elliptic curve cryptography.
+
+## Update 3: 27th May 2017 - GCD Functionality
+More code from the book, mainly implementing the extended GCD algorithm in terms of the BIGINT number system introduced earlier
+into the book. While I have covered the GCD division algorithm in a First-Year CS Maths course, it was the first time I had met the 
+computerized version. 
