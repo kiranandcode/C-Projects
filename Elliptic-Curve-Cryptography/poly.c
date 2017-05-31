@@ -65,6 +65,14 @@ void sngltodbl(FIELD2N *from, DBLFIELD *to) {
 }
 
 
+void dbltosngl(DBLFIELD *from, FIELD2N *to) {
+    INDEX  i;
+
+    // Copy the lower bits into the output
+    SUMLOOP(i) to->e[i] = from->e[DBLWORD-NUMWORD + i];
+
+}
+
 void poly_mul_partial(FIELD2N *a,FIELD2N *b,DBLFIELD *c) {
     INDEX i,bit_count,word;
     ELEMENT mask;
@@ -95,5 +103,118 @@ void poly_mul_partial(FIELD2N *a,FIELD2N *b,DBLFIELD *c) {
         if(!mask) mask = 1;
 
     }
+
+}
+
+void div_shift(DBLFIELD *a) {
+// shifts to the right
+    ELEMENT  *eptr, temp, bit;
+    INDEX i;
+    // Pointer to the elements in the array
+    eptr = (ELEMENT*) &a->e[0];
+
+    bit = 0;
+    DBLLOOP(i) {
+        // Get the value shifted back one + the bit from prior iterations
+        temp = (*eptr >> 1) | bit;
+        // If before shifting, there was a bit in the first position, set bit to MSB for the next iteration
+        bit = (*eptr & 1) ? MSB : 0L;
+
+        // Finally, assign new value to location and shift the reference along one.
+        *eptr++ = temp;
+    }
+
+}
+
+// Finds the msb in a word x
+INDEX log_2(ELEMENT x) {
+    ELEMENT ebit, bitsave, bitmask;
+    INDEX k, lg2;
+
+    lg2 = 0;
+    bitsave = x;
+    k = WORDSIZE/2;
+    // Recently learned that -1 returns a binary representation of all 1s, thus shifting left by k ignores the lower bits
+    bitmask = -1 <<k;
+
+    while(k) {
+        // Are there any bits in the upper half?
+        ebit = bitsave & bitmask;
+
+        if(ebit) {
+            // If yes, increment the position by k, (the binary search is now starting from its original postion + k
+            lg2 += k;
+            // Remove the lower bits from the mask, no point keeping them around
+            bitsave = ebit;
+        }
+
+        // Binary search, so decrement the scale by 1/2
+        k/=2;
+
+        // Very nice section of code, understandable using the following illustration
+        // Initial bit mask      =           111111111111111000000000000000000
+        // New     bit mask      =                     11111111111110000000000
+        //                                                  kkkkkkkk
+        //                                               difference of size k,
+        //          xored mask   =                          111111110000000000
+        // decreases the mask by k.
+        bitmask ^= (bitmask >> k);
+    }
+    // So this loop essentially zeroes in on the msb - the first if produces an every increasing lower bound by eliminating values below the mask
+    //                                                 the second one produces a decreasing upper bound by repeatedly shifting the mask to a smaller space
+
+
+    return (lg2);
+}
+
+
+// Finds the msb of a ELEMENT array - compatible with all Bigint and DoubleNum implementations provided correct dim given
+INDEX degreeof(ELEMENT *t, INDEX dim) {
+    INDEX degree, k;
+    ELEMENT ebit, bitsave, bitmask;
+
+    degree = dim * WORDSIZE;
+
+    // Starting from the highest bit, decrement downwards until a non-zero element is found
+    for(k = 0; k<dim; k++) {
+        if(*t) break;
+        degree -= WORDSIZE;
+        t++;
+    }
+    // If the entire sequence is empty, return -1
+    if(!*t) return (-1);
+
+    // Finally, find the specific bit using the prior binary search algorithm.
+    degree += log_2(*t);
+
+    // return;
+    return  degree;
+}
+
+void poly_div(DBLFIELD *top, FIELD2N *bottom, FIELD2N *quotient, FIELD2N *remainder) {
+    INDEX deg_top;
+    INDEX deg_bottom;
+    INDEX deg_quot;
+    INDEX bit_count;
+    INDEX i;
+    INDEX equot;
+    ELEMENT topbit, *tptr;
+    DBLFIELD shift;
+
+
+
+    // Find the MSB of both polynomials, if numerator has a lower msb that denominator, then division returns 0
+    deg_top = degreeof(top, DBLWORD);
+    deg_bottom = degreeof(bottom, NUMWORD);
+
+
+    null(quotient);
+
+    if(deg_top < deg_bottom) {
+        dbltosngl(top,remainder);
+        return;
+    }
+
+    // shift the bottom to align with msb of numerator - as in hand schoolbook multiplication
 
 }
