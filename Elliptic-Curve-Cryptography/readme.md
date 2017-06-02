@@ -37,3 +37,6 @@ Continued progressing through the book, I spent some tiem today considering how 
 
 ## Update 6: 31st May 2017 - More polynomial Maths
 Was mainly busy the SheCodes Morgan Stanley Hackathon, however managed to fit in some time to continue work on the algorithm. Unfortunately was a few minutes late to upload the code before midnight so I ended up having no contributions for this day. The polynomial maths is quite enjoyable - often many of the algorithms seem very complex and intimidating, however as you parse through them, you get a real sense of accomplishment as you decipher the intention of each implementation detail.
+
+## Update 7: 2nd June 2017 - Even More polynomial Maths
+Was recently busy going to London to organize work experience over the summer, and as such didn't have the oppourtunity to continue work on this project. Spent most of my allocated time on this project getting back to scratch on how the project works again. While some of the intricacies of how the bit fields are still a little confusing to me, I plan to continue through the book until I can understand the high level intuition behind eliptic curve cryptography. At which point I can then go back and rewrite the underlying C structures in a way that makes more sense to me.
