@@ -9,6 +9,11 @@
  *  Enjoyed? Check out my github for more: https://github.com/Gopiandcode
 **/
 
+
+FIELD2N poly_prime = {
+        0x08000000, 0x0000000, 0x00000000, 0x00000000, 0x000000B1 //155
+};
+
 void poly_add(FIELD2N *a, FIELD2N *b, FIELD2N *c){
     INDEX i;
     SUMLOOP(i) c->e[i] = a->e[i] ^ b->e[i];
@@ -216,5 +221,132 @@ void poly_div(DBLFIELD *top, FIELD2N *bottom, FIELD2N *quotient, FIELD2N *remain
     }
 
     // shift the bottom to align with msb of numerator - as in hand schoolbook multiplication
+    deg_quot = deg_top - deg_bottom;
+    bit_count = deg_quot + 1;
+    // 1 1 1 1 0 0 0 0
+    // | | | | | | | |
+    // 0 0 0 0 0 1 1 1
 
+    // The difference between the msb is 5
+    // Copy denominator into shift
+    sngltodbl(bottom, &shift);
+    // shift to align with numerator
+    for(i = 0; i<deg_quot; i++) {
+        poly_shift(&shift);
+    }
+
+    // Bitmask to check msb of top
+    topbit = 1L << (deg_top % WORDSIZE);
+
+    // tptr points to the topmost element - equiv to (top + 1 - deg_top)/WORDSIZE
+    // Take top, points to the msb, shift it to the end, and then subtract the number of words in the bits in the MSB,
+    tptr = (ELEMENT *) top + DBLWORD - deg_top/WORDSIZE;
+
+
+    while(bit_count) {
+        // Is the bit in the topmost element 1
+        if(*tptr & topbit) {
+            // Then just add shift to subtract - in base 2 + == -
+            DBLLOOP(i)
+                top->e[i] ^= shift.e[i];
+
+            // Update equot to indicate that division occurred at this power
+            equot = NUMWORD - deg_quot/WORDSIZE;
+            quotient->e[equot] |= 1L << (deg_quot % WORDSIZE);
+        }
+
+        // Consider the next bit along.
+        bit_count--;
+        deg_quot--;
+        div_shift(&shift);
+        topbit >>= 1;
+
+        // Once you reach the end of one element, jump back to considering the MSB, but of the previous element
+        if(!topbit) {
+            topbit = MSB;
+            tptr++;
+        }
+
+    }
+}
+
+// Multiplication modulo a prime.
+void poly_mul(FIELD2N *a, FIELD2N *b, FIELD2N *c) {
+    DBLFIELD temp;
+    FIELD2N dummy;
+
+    poly_mul_partial(a, b, &temp);
+    poly_div(&temp, &poly_prime, &dummy, c);
+}
+
+
+// Finds the inverse of a mod the poly prime, into inverse
+void poly_inv(FIELD2N *a, FIELD2N *inverse) {
+    FIELD2N pk, pk1, pk2;
+    FIELD2N rk, rk1;
+    FIELD2N qk, qk1, qk2;
+
+    INDEX i;
+    DBLFIELD rk2;
+
+    // rk2 will contain the base
+    sngltodbl(&poly_prime, &rk2);
+    // rk1 will contain the initial value
+
+    // Clear all varialbes and set pk1 and qk1 to 1 and pk
+    copy(a, &rk1);
+    null(&pk2);
+    null(&pk1);
+    pk1.e[NUMWORD] = 1L;
+    null(&qk2);
+    null(&qk1);
+    qk1.e[NUMWORD] = 1L;
+    null(&pk);
+    pk.e[NUMWORD] = 1L;
+
+    // divide poly_prime by a and place quotient and remainder into qk, rk
+    poly_div(&rk2, &rk1, &qk, &rk);
+
+    // While the remainder is not 0
+    while(degreeof(&rk, NUMWORD) >= 0) {
+
+        // Multiply the quotient by pk1 (initailly 1, and place into rk2);
+        poly_mul_partial(&qk, &pk1, &rk2);
+
+        // then subtract a from quotient multiplied by pk1
+        SUMLOOP(i) pk.e[i] = rk2.e[i+DBLWORD-NUMWORD] ^ pk2.e[i];
+
+        sngltodbl(&rk1, &rk2);
+        copy(&rk, &rk1);
+        copy(&qk1, &qk2);
+        copy(&qk, &qk1);
+        copy(&pk1, &pk2);
+        copy(&pk, &pk1);
+
+        poly_div(&rk2, &rk1, &qk, &rk);
+    }
+
+    // Finally copy over the result.
+    copy(&pk, inverse);
+}
+
+
+
+void poly_gcd(FIELD2N *u, FIELD2N *v, FIELD2N *gcd) {
+    DBLFIELD top;
+    FIELD2N r, dummy, temp;
+
+    // Gotta use a double for the division functionalities
+    sngltodbl(u, &top);
+    copy(v, &r);
+
+    // Simple gcd algorithm, keep on swapping the remainder with the divisor...
+    while(degreeof(&r, NUMWORD) >= 0) {
+        poly_div(&top, &r, &dummy, &temp);
+        sngltodbl(&r, &top);
+        copy(&temp, &r);
+    }
+
+    // Finally copy it over.
+    dbltosngl(&top, gcd);
 }
