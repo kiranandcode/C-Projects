@@ -350,3 +350,70 @@ void poly_gcd(FIELD2N *u, FIELD2N *v, FIELD2N *gcd) {
     // Finally copy it over.
     dbltosngl(&top, gcd);
 }
+
+// operation to multiply a polynomial in x by x mod a polynomial base
+
+void mul_x_mod(FIELD2N *u, FIELD2N *v, FIELD2N *w) {
+    DBLFIELD mulx;
+    INDEX  i, deg_v;
+
+    deg_v = degreeof(v, NUMWORD);
+
+    // Put u into mul x
+    sngltodbl(u, &mulx);
+
+    // Multiply the u polynomial by x - in this representation this is done by shifting left - every coefficient goes along one.
+    poly_shift( &mulx);
+
+    // Put it back into a normal field.
+    dbltosngl(&mulx, w);
+
+    // If the degree of the polynomial is equal to v, subtract v.
+    if(w->e[NUMWORD - (deg_v/WORDSIZE)] & (1L << (deg_v % WORDSIZE)))
+        SUMLOOP(i) w->e[i] ^= v->e[i];
+
+}
+
+INDEX irreducible(FIELD2N *v) {
+    FIELD2N  vprm, gcd, x2r, x2rx, temp;
+    FIELD2N  sqr_x[NUMBITS+1];
+    INDEX    i, r, deg_v, k;
+
+
+    SUMLOOP(i) vprm.e[i] = (v->e[i] >> 1) & DERIVMASK;
+    poly_gcd(v, &vprm, &gcd);
+    if(gcd.e[NUMWORD] > 1) return 0;
+
+    for(i = 0; i<NUMWORD; i++) if(gcd.e[i]) return 0;
+
+    deg_v = degreeof(v, NUMWORD);
+
+    null(&sqr_x[0]);
+    sqr_x[0].e[NUMWORD] = 1;
+    for(i = 1; i<= deg_v; i++) {
+        mul_x_mod(&sqr_x[i-1], v, &temp);
+        mul_x_mod(&temp, v, &sqr_x[i]);
+    }
+
+    null(&x2r);
+    x2r.e[NUMWORD] = 2;
+
+    for(r = 1; r<=deg_v/2; r++) {
+        null(&x2rx);
+        for(i = 0; i<=deg_v; i++) {
+            if(x2r.e[NUMWORD - (i/WORDSIZE)] & (1L << (i%WORDSIZE)))
+                SUMLOOP(k) x2rx.e[k] ^= sqr_x[i].e[k];
+        }
+
+        copy(&x2rx, &x2r);
+        x2rx.e[NUMWORD] ^= 2;
+
+        poly_gcd(&x2rx, v, &gcd);
+        if(gcd.e[NUMWORD] > 1) return 0;
+        for(i = 0; i<NUMWORD; i++)
+            if(gcd.e[i]) return 0;
+    }
+
+    return 1;
+
+}
