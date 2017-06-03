@@ -40,3 +40,6 @@ Was mainly busy the SheCodes Morgan Stanley Hackathon, however managed to fit in
 
 ## Update 7: 2nd June 2017 - Even More polynomial Maths
 Was recently busy going to London to organize work experience over the summer, and as such didn't have the oppourtunity to continue work on this project. Spent most of my allocated time on this project getting back to scratch on how the project works again. While some of the intricacies of how the bit fields are still a little confusing to me, I plan to continue through the book until I can understand the high level intuition behind eliptic curve cryptography. At which point I can then go back and rewrite the underlying C structures in a way that makes more sense to me.
+
+## Update 8: 3rd June 2017 - Finished Polynomial utility functions
+Spent most of the day learning android, thus had less time to work on the Polynomial library. I implemented some more functions from the book. I'm slightly annoyed at the fact that despite investing an hour or so into deciphering the polynomial maths, I have made little in the way of headway. At this point, I think I will have to invest my time into researching some other sources for gaining the correct intuition.
