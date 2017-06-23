@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include "../CH5/mem.h"
 #include "assert.h"
-#include "arith.h"
+#include "../CH2/arith.h"
 #include "set.h"
 
 #define T Set_T
@@ -206,10 +206,10 @@ T Set_union(T s, T t) {
 		assert(s->cmp == t->cmp && s->hash == t->hash);
 		{
 			int i;
-			struct member *p;
+			struct member *q;
 			for(i = 0; i< t->size; i++)
 				for(q = t->buckets[i]; q; q = q->link)
-					Set_put(q->member);
+					Set_put(set, q->member);
 		}
 		return set;
 	}
