@@ -266,12 +266,39 @@ T Set_diff(T s, T t) {
 			struct member *q;
 			for(i = 0; i<t->size; i++)
 				for(q = t->buckets[i]; q; q = q->link)
-					if(!Set_member(s, q->member))
-
-
-
-
-
-
+					if(!Set_member(s, q->member)){
+						struct member *p;
+						const void *member =  q->member;
+						int i = (*set->hash)(member)%set->size;
+						NEW(p);
+						p->member = member;
+						p->link = set->buckets[i];
+						set->buckets[i] = p;
+						set->length++;
+					}
 
 		}
+		{
+			T u = t;
+			t = s;
+			s = u;
+		}
+		{
+			int i;
+			struct member *q;
+			for( i = 0; i < t->size; i++)
+				for(q = t->buckets[i]; q; q = q->link)
+					if(!Set_member(s, q->member)){
+						struct member *p;
+						const void *member =  q->member;
+						int i = (*set->hash)(member)%set->size;
+						NEW(p);
+						p->member = member;
+						p->link = set->buckets[i];
+						set->buckets[i] = p;
+						set->length++;
+					}
+		}
+		return set;
+	}	
+}
