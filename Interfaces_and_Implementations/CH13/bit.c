@@ -6,6 +6,7 @@
 
 #define T Bit_T
 
+
 struct T {
 	int length;
 	unsigned char *bytes;
@@ -16,13 +17,39 @@ struct T {
 #define BPW (8*sizeof(unsigned long))
 #define nwords(len) ((((len) + BPW - 1) & (~(BPW-1)))/BPW)
 #define nbytes(len) ((((len) + 8 - 1) & (~(8-1)))/8)
+#define setop(sequal, snull, tnull, op) \
+	if (s == t) { assert(s); return sequal; } \
+	else if(s == NULL) { assert(t); return snull; } \
+	else if(t == NULL) return tnull; \
+	else { \
+		int i; T set; \
+		assert(s->length == t->length); \
+		set = Bit_new(s->length); \
+		for(i = nwords(s->length); --i >= 0;) \
+			set->words[i] = s->words[i] op t->words[i]; \
+		return set; }
 
 
 /* static data */
+// array maps binary values into bitmasks with corresponding number of bits set
 unsigned char msbmask[] = {
-	0xFF, 0xFE, 0xFC, 0xF8, 0xF0, 0xE0, 0xC0, 0x80};
+	0xFF, 0xFE, 0xFC, 0xF8, 0xF0, 0xE0, 0xC0, 0x80
+};
+unsigned char lsbmask[] = {
+	0x01, 0x03, 0x07, 0x0F,
+	0x1F, 0x3F, 0x7F, 0xFF
+};
 
 /* static functions */
+
+static T copy(T t) {
+	T set;
+	assert(t);
+	set = Bit_new(t->length);
+	if(t->length > 0)
+		memcpy(set->bytes, t->bytes, nbytes(t->length));
+	return set;
+}
 
 /* functions */
 T Bit_new(int length) {
@@ -93,13 +120,102 @@ void Bit_set(T set, int lo, int hi) {
 	asset(set);
 	assert(0 <= lo && hi , set->length);
 	assert(lo <= hi);
+
 	if(lo/8 < hi/8) {
-
-		set->bytes[lo/8];
-	} else {
-
-	}
-
+		// Set most significant bits in the lowest byte
+		set->bytes[lo/8] |= msbmask[lo%8];
+		
+		// Set all bits in bytes lo/8+1 .. h / 8-1
+		{
+			int i;
+			for(i = lo/8+1; i < hi/8; i++) 
+				set->bytes[i] = 0xFF;
+		}
+		
+		// set least significant bits in byte hi
+		set->bytes[hi/8] |= lsbmask[hi%8];
+	} else 
+		set->bytes[lo/8] |= (msbmask[lo%8] & lsbmask[hi%8]);
 }
 
+void Bit_clear(T set, int lo, int hi) {
+	asset(set);
+	assert(0 <= lo && hi , set->length);
+	assert(lo <= hi);
+
+	if(lo/8 < hi/8) {
+
+		int i;
+		set->bytes[lo/8] &= ~msbmask[lo%8];
+		for(i = lo/8+1; i < hi/8; i++)
+			set->bytes[i] = 0;
+		set->bytes[hi/8] &= ~lsbmask[hi%8];
+
+	} else
+		set->bytes[lo/8] &= ~(msbmask[lo%8]&lsbmask[hi%8]);
+}
+
+// lol - bitmap...
+void Bit_map(T set,
+		void apply(int n, int bit, void *cl), void *cl) {
+	int n;
+
+	assert(set);
+	for(n = 0; n < set->length; n++)
+		apply(n, ((set->bytes[n/8]>>(n%8))&1), cl);
+}
+
+
+int Bit_eq(T s, T t) {
+	int i;
+	assert(s && t);
+	assert(s->length == t->length);
+	for(i = nwords(s->length); --i >= 0;)
+		if(s->words[i] != t->words[i])
+			return 0;
+	return 1;
+}
+
+
+// checks if s is a subset of t
+int Bit_leq(T s, T t) {
+	int i;
+	assert(s && t);
+	assert(s->length == t->length);
+	for(i = nwords(s->length); --i >= 0;)
+		if((s->words[i] &~t->words[i]) != 0)
+			return 0;
+	return 1;
+}
+
+
+int Bit_lt(T s, T t) {
+	int i, lt = 0;
+	assert(s && t);
+	assert(s->length && t->length);
+	for(i = nwords(s->length); --i >= 0;)
+		if((s->words[i] &~t->words[i]) != 0)
+			return 0;
+		else if (s->words[i] != t->words[i])
+			lt |= 1;
+	return lt;
+}
+
+
+T Bit_union(T s, T t) {
+	setop(copy(t), copy(t), copy(s), |)
+}
+
+T Bit_inter(T s, T t) {
+	setop(copy(t), Bit_new(t->length), Bit_new(s->length), &)
+}
+
+T Bit_minus(T s, T t) {
+	setop(Bit_new(s->length),
+			Bit_new(t->length), copy(s), & ~)
+}
+
+T Bit_diff(T s, T t) {
+	setop(Bit_new(s->length), copy(t), copy(s), ^)
+}
 
