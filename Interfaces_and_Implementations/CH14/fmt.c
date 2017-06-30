@@ -22,6 +22,126 @@ struct buf {
 /* Macros */
 
 /* conversion functions */
+static void cvt_d(int code, va_list *app,
+		int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision) {
+	int val = va_arg(*app, int);
+	unsigned m;
+
+	// declare buf and p and initialize p
+	char buf[43];
+	char *p = buf + sizeof(buf);
+
+
+	if(val == INT_MIN)
+		m = INT_MAX + 1U;
+	else if(val < 0)
+		m = -val;
+	else
+		m = val;
+	do
+		*--p = m%10 + '0';
+	while((m /= 10) > 0);
+	if(val < 0)
+		*--p = '-';
+	Fmt_putd(p, (buf + sizeof buf) - p, put, cl, flags, width, precision);
+}
+
+static void cvt_u(int code, va_list *app, int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision) {
+	unsigned m = va_arg(*app, unsigned);
+	char buf[43];
+	char *p = buf + sizeof(buf);
+
+	do
+		*--p = m % 10 + '0';
+	while((m /= 10) > 0);
+	Fmt_putd(p, (buf + sizeof(buf)) - p, put, cl, flags, width, precision);
+}
+
+static void cvt_o(int code, va_list *app, int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision) {
+	unsigned m = va_arg(*app, unsigned);
+
+	char buf[43];
+	char *p = buf + sizeof(buf);
+
+	do
+		*--p = (m&0x7) + '0';
+	while((m >>= 3) != 0);
+	Fmt_putd(p, (buf + sizeof buf) - p, put, cl, flags, width, precision);
+}
+
+
+static void cvt_x(int code, va_list *app, int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision)
+{
+	unsigned m = va_arg(*app, unsigned);
+	char buf[43];
+	char *p = buf + sizeof (buf);
+
+	do
+		*--p = "0123456789abcdef"[m&0xf];
+	while((m>>= 4) != 0);
+
+	Fmt_putd(p, (buf + sizeof(buf)) - p, put, cl, flags, width, precision);
+}
+
+static void cvt_p(int code, va_list *app, int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision)
+{
+	unsigned long m = (unsigned long)va_arg(*app, void *);
+	char buf[43];
+	char *p = buf + sizeof(buf);
+
+	precision = INT_MIN;
+	do
+		*--p = "0123456789abcdef"[m&0xf];
+	while((m >>= 4) != 0);
+	Fmt_putd(p, (buf + sizeof buf) - p, put, cl, flags, width, precision);
+}
+
+
+static void cvt_c(int code, va_list *app, int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision) {
+	if(width == INT_MIN)
+		width = 0;
+	if(width < 0) {
+		flags['-'] = 1;
+		width = -width;
+	}
+
+	if(!flags['-'])
+		pad(width - 1, ' ');
+	put((unsigned char) va_arg(*app, int), cl);
+	if(flags['-'])
+		pad(width - 1, ' ');
+}
+
+static void cvt_f(int code, va_list *app,
+		int put(int c, void *cl), void *cl,
+		unsigned char flags[], int width, int precision) {
+	char buf[DBL_MAX_10_EXP+1+1+99+1];
+	if(precision < 0)
+		precision = 6;
+	if(code =='g' && precision == 0)
+		precision = 1;
+
+	{
+
+		static char fmt[] = "%.dd?";
+		assert (precision <= 99);
+		fmt[4] = code;
+		fmt[3] = precision  % 10 + '0';
+		fmt[2] = (precision/10)%10 + '0';
+		sprintf(buf, fmt, va_arg(*app, double));
+	}
+
+	
+
+	Fmt_putd(buf, strlen(buf), put, cl, flags, width, precision);
+
+}
 
 /* data */
 const Except_T Fmt_Overflow = { "Formatting Overflow" };
@@ -46,6 +166,7 @@ static T cvt[256] = {
 };
 
 
+char *Fmt_flags = "-+ 0";
 
 /* static functions */
 static int outc(int c, void *cl) {
@@ -172,12 +293,46 @@ void Fmt_vfmt(int put(int c, void *cl), void *cl, const char *fmt, va_list ap) {
 			memset(flags, '\0', sizeof flags);
 
 			// get the optional flags
-			
+			if(Fmt_flags) {
+				unsigned char c = *fmt;
+				for(; c && strchr(Fmt_flags, c); c = *++fmt) {
+					assert(flags[c] < 255);
+					flags[c]++;
+				}
+			}
 
 			// get optional field width
+			if(*fmt == '*' || isdigit(*fmt)) {
+				int n;
+				if(*fmt == '*') {
+					n = va_arg(ap, int);
+					assert(n != INT_MIN);
+					fmt++;
+				} else
+					for(n = 0; isdigit(*fmt); fmt++) {
+						int d = *fmt - '0';
+						assert(n <= (INT_MAX - d)/10);
+						n = 10*n + d;
+					}
+				width = n;
 			
 
 			// get optional precision
+			
+			if(*fmt == '.' && (*++fmt == '*' || isdigit(*fmt))) {
+				int n;
+				if(*fmt == '*') {
+					n = va_arg(ap, int);
+					assert(n != INT_MIN);
+					fmt++;
+				} else
+					for(n = 0; isdigit(*fmt); fmt++) {
+						int d = *fmt - '0';
+						assert(n <= (INT_MAX - d)/10);
+						n = 10*n + d;
+					}
+				precision = n;
+			}
 			
 
 			c = *fmt++;
@@ -185,3 +340,83 @@ void Fmt_vfmt(int put(int c, void *cl), void *cl, const char *fmt, va_list ap) {
 			(*cvt[c])(c, &ap, put, cl, flags, width, precision);
 		}
 }
+
+
+T Fmt_register(int code, T newcvt) {
+	T old;
+
+	assert(0 < code && code < (int)(sizeof(cvt)/sizeof(cvt[0])));
+	old = cvt[code];
+	cvt[code] = newcvt;
+	return old;
+}
+
+void Fmt_putd(const char *str, int len, int put(int c, void *cl), void *cl, unsigned char flags[], int width, int precision) {
+	int sign;
+
+	assert(str);
+	assert(len  >= 0);
+	assert(flags);
+
+	// normalise width and flags
+	
+	if(width == INT_MIN)
+		width = 0;
+	if(width < 0)
+		 {
+			 flags['-'] = 1;
+			 width = -width;
+		 }
+	if(precision >= 0)
+		flags['0'] = 0;
+
+	if(len > 0 && (*str == '-' || *str == '+')) {
+		sign = *str++;
+		len--;
+	} else if(flags['+'])
+		sign = '+';
+	else if(flags[' '])
+		sign = ' ';
+	else
+		sign = 0;
+
+	{
+		// emit str justified in width
+		int n;
+		if(precision < 0)
+			precision = 1;
+		if(len < precision)
+			n = precision;
+		else if(precision == 0 && len == 1 && str[0] == '0')
+			n = 0;
+		else
+			n = len;
+		if(sign)
+			n++;
+
+		if(flags['-']) {
+			if(sign)
+				put(sign, cl);
+		} else if(flags['0']) {
+			if(sign)
+				put(sign, cl);
+			pad(width - n, '0');
+		} else {
+			pad(width - n, ' ');
+			if(sign)
+				put(sign, cl);
+		}
+
+		pad(precision - len, '0');
+		{
+			int i;
+			for(i = 0; i < len; i++)
+				put((unsigned char) *str++, cl);
+
+		}
+		if(flags['-'])
+			pad(width - n, ' ');
+	}
+}
+
+
