@@ -9,6 +9,7 @@
 
 
 void printChild(TC child);
+void printContainer(TS container);
 void printNode(T node);
 
 #undef TS

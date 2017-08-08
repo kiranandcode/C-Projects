@@ -8,7 +8,7 @@
 struct TS {
 	int type;
 	int count;
-	struct T *children;
+	struct T **children;
 };
 
 struct TC {

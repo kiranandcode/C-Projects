@@ -18,7 +18,9 @@ typedef struct T  *T;
  * @param value The actual value of the child
  *
  * */
-T constructChild(int type, char *value);
+T T_constructChild(int type, char *value);
+T T_constructContainer(int type);
+void T_addChild(T container, T child);
 
 
 #undef TS

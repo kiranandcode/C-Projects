@@ -34,7 +34,7 @@
 #define T  T_Node
 #define NEW(x) ((x) = malloc((long)sizeof(*(x))))
 
-T constructChild(int type, char *value) {
+T T_constructChild(int type, char *value) {
 
 	T child;
 	NEW(child);
@@ -48,4 +48,39 @@ T constructChild(int type, char *value) {
 	return child;
 }
 
+T T_constructContainer(int type) {
+	T container;
+	NEW(container);
+
+	container->type = CONTAINER;
+
+	container->Element.Container.type = 0;
+	container->Element.Container.count = 0;
+	container->Element.Container.children = NULL;
+
+	return container;
+
+}
+
+
+void T_addChild(T container, T child) {
+
+
+	switch(container->type) {
+
+		case CONTAINER: {
+			int len = container->Element.Container.count++;
+			container->Element.Container.children = realloc(container->Element.Container.children, container->Element.Container.count * (sizeof(*container)));
+			container->Element.Container.children[len] = child;
+
+			break;
+
+				}
+		case CHILD:
+
+			break;
+
+	}
+
+}
 
