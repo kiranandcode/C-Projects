@@ -76,9 +76,19 @@ void T_addChild(T container, T child) {
 			break;
 
 				}
-		case CHILD:
+		case CHILD:{
+
+				   T new_child = T_constructChild(container->Element.Child.type, container->Element.Child.value);
+				   free(container->Element.Child.value);
+				   container->type = CONTAINER;
+				   container->Element.Container.type = container->Element.Child.type;
+				   container->Element.Container.count = 0;
+				   container->Element.Container.children = NULL;
+				   T_addChild(container, new_child);
+				   T_addChild(container, child);
 
 			break;
+			   }
 
 	}
 
