@@ -4,7 +4,7 @@
 
 typedef struct T *T;
 
-extern t Table_new(int hint, int cmp(const void *x, const void *y),
+extern T Table_new(int hint, int cmp(const void *x, const void *y),
 		unsigned hash(const void *key));
 
 extern void Table_free(T *table);

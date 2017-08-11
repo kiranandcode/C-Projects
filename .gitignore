@@ -13,9 +13,14 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+*.exe
 
 # Windows shortcuts
 *.lnk
+
+# Vim swap files
+*.swp
+*.swo
 
 # =========================
 # Operating System Files
