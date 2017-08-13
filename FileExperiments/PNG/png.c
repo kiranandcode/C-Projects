@@ -428,16 +428,35 @@ void encode(struct pixel *data, unsigned char *output, int w, int h, int bit_dep
 
 unsigned char filter_byte(unsigned char x, unsigned char a, unsigned char b, unsigned char c, int filter_method) {
 	switch(filter_method){
-		case 0:
+		case 0:{
+			       return x;
 		       break;
-	      	case 1: 	       
+		       }
+	      	case 1:{
+			       return x - a;
 		       break;
-		case 2:
+		       }
+		case 2:{
+			       return x - b;
 		       break;
-		case 3:
+		       }
+		case 3:{
+			       return x - floor((long)(a+b)/2);
 		       break;
-		case 4:
+		       }
+		case 4:{
+			       long p = a + b - c;
+			       long pa = labs(p-a);
+			       long pb = labs(p-b);
+			       long pc = labs(p-c);
+			       if(pa <= pb && pa <=pc) return a;
+			       else if(pb <= pc) return b;
+			       else return c;
 		       break;
+		       }
+		default:
+		       error("Invalid filter method");
+		       return 0;
 	}
 }
 
@@ -551,6 +570,7 @@ void filter(unsigned char *data, unsigned char*output, int w, int h, int bit_dep
 	int i, j;
 
 	for(j = 0; j < h; ++j) {
+		*output_iterator = filter_method;
 
 		for(i = 0; i < byte_w; ++i) {
 
@@ -860,6 +880,13 @@ void filter(unsigned char *data, unsigned char*output, int w, int h, int bit_dep
 
 	}	
 
+
+
+
+}
+
+
+void zlib_compress(unsigned char *data, unsigned char *output, int bytes){
 
 
 
