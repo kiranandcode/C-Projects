@@ -887,7 +887,21 @@ void filter(unsigned char *data, unsigned char*output, int w, int h, int bit_dep
 
 
 void zlib_compress(unsigned char *data, unsigned char *output, int bytes){
+	unsigned int LZ77_window_size;
+	unsigned int FCHECK;
+	unsigned int FDICT;
+	unsigned int FLEVEL;
 
+	// specify compression mode 8, LZ77 window of 32768
+	// if size <16384 then window size may be rounded up
+	unsigned char compression_method_flags = 0x8;
+	compression_method_flags |= ( (unsigned int)log2(LZ77_window_size-7) << 4);
+	unsigned char additional_flags = 0;
+	additional_flags |= (FCHECK & 0x1F);
+	additional_flags |= ((FDICT << 5) & 0x20);
+	additional_flags |= ((FLEVEL <<6) & 0xA0);
+
+	unsigned char check_value[4];
 
 
 }
