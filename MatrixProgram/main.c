@@ -1,41 +1,36 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "matrix.h"
+#include <stdio.h>
 
 
 
+int main() {
+	matrix_test();
+
+	matrix_G iden = matrix_ident(3);
+	matrix_G rand = matrix_rand(5,5);
+	matrix_G random = matrix_horizontal_concat(iden,iden);
+	matrix_G vert = matrix_vertical_concat(iden,iden);
+	matrix_G row = matrix_row(iden, 1);
+	matrix_G col = matrix_col(iden,1);
+	matrix_G tr_iden = matrix_transpose(iden);
+	matrix_G tr_col = matrix_transpose(col);
+	matrix_G tr_rand = matrix_transpose(rand);
+	matrix_G next = matrix_inv(iden);
 
 
-double main() {
-    double **example = malloc(sizeof(double *)*4);
-    int i;
-    for(i = 0; i<4; i++) {
-        example[i] = malloc(sizeof(double)*4);
-    }
-    example[0][0] = 2.0;
-    example[0][1] = -2.0;
-    example[0][2] = 1.0;
-    example[0][3] = 0.0;
-
-    example[1][0] = 0.0;
-    example[1][1] = 1.0;
-    example[1][2] = -3.0;
-    example[1][3] = 4.0;
-
-    example[2][0] = 2.0;
-    example[2][1] = -1.0;
-    example[2][2] = -1.0;
-    example[2][3] = 4.0;
-
-    example[3][0] = -6.0;
-    example[3][1] = 4.0;
-    example[3][2] = 3.0;
-    example[3][3] = -7.0;
+	matrix_print(col);
+	matrix_print(tr_iden);
+	matrix_print(tr_col);
+	matrix_print(vert);
+	matrix_print(row);
+	matrix_print(random);
+	matrix_print(iden);
+	matrix_print(rand);
 
 
-    matrix det = getInitializedMatrix(4, 4, example);
-    printMatrix(det);
-    printf("Determinant is %lf\n",matrixDeterminant(det));
+	matrix_print(tr_rand);
 
-    return 0;
+	printf("%d\n", matrix_det(iden));
+	matrix_print(next);
+
 }

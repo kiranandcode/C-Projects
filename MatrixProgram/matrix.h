@@ -1,80 +1,75 @@
-//
-// Created by gopia on 01/04/2017.
-//
+#ifndef MATRIX_H
+#define MATRIX_H
+#define G matrix_G 
 
-#ifndef MATRIXPROGRAM_MATRIX_H
-#define MATRIXPROGRAM_MATRIX_H
+#ifndef MATRIX_MULT_BOUNDARY
+#define MATRIX_MULT_BOUNDARY 100
+#endif
 
-#include "stdlib.h"
-#include "stdio.h"
+#ifndef MATRIX_TYPE
+#define MATRIX_TYPE double
+#endif
 
+#ifndef MATRIX_DESC
+#define MATRIX_DESC unsigned long 
+#endif
 
-typedef struct {
-    double **matrix;
-    const int rows;
-    const int columns;
-} *matrix, _matrix;
+#ifndef MATRIX_DESC_FMT_STR
+#define MATRIX_DESC_FMT_STR "%d"
+#endif
 
+#ifndef MATRIX_TYPE_FMT_STR
+#define MATRIX_TYPE_FMT_STR "%f"
+#endif
 
-matrix getEmptyMatrix(int rows, int columns);
+#define INT MATRIX_TYPE
+#define UINT MATRIX_DESC
 
-/**
- * @brief Initializes a matrix from a corresponding mxn matrix.
- * @param rows The number of rows.
- * @param columns The number of columns
- * @param array The double[rows][columns] matrix to use as initialization.
- * @return The mxn matrix object.
- */
-matrix getInitializedMatrix(int rows, int columns, double** array);
+struct G;
 
+typedef struct G *G;
 
-/**
- * @brief A function to prdouble a matrix as with any good abstraction.
- * @param mat The matrix to prdouble.
- */
-void printMatrix(matrix mat);
-
-
-/**
- * @brief Function to get a specific value in a matrix.
- * Intended for use by end user, library specific functions do not use this function, but directly access the matrix.
- * Also performs bounds checking, so don't exceed the bounds, or the program will terminate.
- * @param i The row number - following mathematical notation, the first row is numbered 1 rather than the programming standard of 0.
- * @param j The column number - following mathematical notation, the first column is numbered 1 rather than the programming standard of 0.
- * @param mat The matrix to retrieve values from.
- * @return The value.
- */
-double get(int i, int j, matrix mat);
-
-
-/**
- * @brief Function returning the identity matrix of order n.
- * @param order The order of the matrix, the number of rows and columns it should have.
- * @return The identity matrix.
- */
-matrix getIdentityMatrix(int order);
-
-
-/**
- * @brief A function to return the diagonal product of a square matrix.
- * @param mat The matrix to perform the calculation on.
- * @return The diagonal product.
- */
-double diagonalProduct(matrix mat);
-
-/**
- * @brief A function to create a copy of a specified matrix.
- * @param mat A matrix to copy.
- * @return A copy of the matrix.
- */
-matrix copyMatrix(matrix mat);
-
-/**
- * @brief A function to find the determinant of a matrix (using gaussian elimination).
- * @param mat A square matrix.
- * @return The determinant of said matrix.
- */
-double matrixDeterminant(matrix mat);
+G matrix_new(UINT row, UINT col);                  // implemented
+G matrix_rand(UINT row, UINT col);                 // implemented
+G matrix_mult(G a, G b); 
+G matrix_add(G a, G b);                            // implemented
+G matrix_sub(G a, G b);                            // implemented
+G matrix_dot(G a, G b);                            // implemented
+// -----------------------------------------------------------
+G matrix_scalar_mult(G a, INT val);                // implemented
+G matrix_scalar_add(G a, INT val);                 // implemented
+G matrix_scalar_sub(G a, INT val);  	           // implemented
+// ----------------------------------------------------------
+void matrix_row_swap(G mat, UINT a, UINT b);       // implemented
+void matrix_col_swap(G mat, UINT a, UINT b);       // implemented
+// -----------------------------------------------------------
+G matrix_inv(G a);                                 // implemented
+G matrix_pinv(G a);
+G matrix_map(G a, INT (*)(INT));                   // implemented
+G matrix_copy(G a);                                // implemented
+G matrix_ident(UINT sz);                           // implemented
+G matrix_fill(UINT row, UINT col, INT val);        // implemented
+G matrix_null(UINT row, UINT col);                 // implemented
+// -----------------------------------------------------------
+G matrix_row(G a, UINT row);                       // implemented
+G matrix_col(G a, UINT col);                       // implemented
+// -----------------------------------------------------------
+G matrix_vertical_concat(G a, G b);                // implemented
+G matrix_horizontal_concat(G a, G b);              // implemented
+G matrix_transpose(G a);		           // implemented
+// -----------------------------------------------------------
+INT matrix_diagonal(G a);                          // implemented
+INT matrix_get(G a, UINT row, UINT col);           // implemented
+INT matrix_det(G a);                               // implemented
+INT matrix_eq(G a, G b);                           // implemented
+// -----------------------------------------------------------
+void matrix_set(G a, UINT row, UINT col, INT val); // implemented
+void matrix_delete(G matrix);                      // implemented
+void matrix_print(G matrix);                       // implemented
+// -----------------------------------------------------------
+void matrix_test();                             
 
 
-#endif //MATRIXPROGRAM_MATRIX_H
+
+#undef G
+#endif  //MATRIX_H
