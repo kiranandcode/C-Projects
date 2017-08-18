@@ -29,41 +29,41 @@ struct G;
 
 typedef struct G *G;
 
-G matrix_new(UINT row, UINT col);
-G matrix_rand(UINT row, UINT col);
-G matrix_mult(G a, G b);
-G matrix_add(G a, G b);
-G matrix_sub(G a, G b);
-G matrix_dot(G a, G b);
-
-G matrix_scalar_mult(G a, INT val);
-G matrix_scalar_add(G a, INT val);
-G matrix_scalar_sub(G a, INT val);
-
-G matrix_inv(G a);
+G matrix_new(UINT row, UINT col);                  // implemented
+G matrix_rand(UINT row, UINT col);                 // implemented
+G matrix_mult(G a, G b); 
+G matrix_add(G a, G b);                            // implemented
+G matrix_sub(G a, G b);                            // implemented
+G matrix_dot(G a, G b);                            // implemented
+// -----------------------------------------------------------
+G matrix_scalar_mult(G a, INT val);                // implemented
+G matrix_scalar_add(G a, INT val);                 // implemented
+G matrix_scalar_sub(G a, INT val);  	           // implemented
+// -----------------------------------------------------------
+G matrix_inv(G a);                            
 G matrix_pinv(G a);
-G matrix_map(G a, INT (*)(INT));
-G matrix_copy(G a);
-G matrix_ident(UINT sz);
-G matrix_fill(UINT row, UINT col, INT val);
-G matrix_null(UINT row, UINT col);
-
-G matrix_row(G a, UINT row);
-G matrix_col(G a, UINT col);
-
-G matrix_vertical_concat(G a, G b);
-G matrix_horizontal_concat(G a, G b);
-
-INT matrix_diagonal(G a);
-INT matrix_get(G a, UINT row, UINT col);
-INT matrix_det(G a);
-INT matrix_eq(G a, G b);
-
-void matrix_set(G a, UINT row, UINT col, INT val);
-void matrix_delete(G matrix);
-void matrix_print(G matrix);
-
-void matrix_test();
+G matrix_map(G a, INT (*)(INT));                   // implemented
+G matrix_copy(G a);                                // implemented
+G matrix_ident(UINT sz);                           // implemented
+G matrix_fill(UINT row, UINT col, INT val);        // implemented
+G matrix_null(UINT row, UINT col);                 // implemented
+// -----------------------------------------------------------
+G matrix_row(G a, UINT row);                       // implemented
+G matrix_col(G a, UINT col);                       // implemented
+// -----------------------------------------------------------
+G matrix_vertical_concat(G a, G b);                // implemented
+G matrix_horizontal_concat(G a, G b);              // implemented
+// -----------------------------------------------------------
+INT matrix_diagonal(G a);                          // implemented
+INT matrix_get(G a, UINT row, UINT col);           // implemented
+INT matrix_det(G a);                            
+INT matrix_eq(G a, G b);                           // implemented
+// -----------------------------------------------------------
+void matrix_set(G a, UINT row, UINT col, INT val); // implemented
+void matrix_delete(G matrix);                      // implemented
+void matrix_print(G matrix);                       // implemented
+// -----------------------------------------------------------
+void matrix_test();                             
 
 
 
