@@ -32,6 +32,8 @@ typedef struct G *G;
 G matrix_new(UINT row, UINT col);
 G matrix_rand(UINT row, UINT col);
 G matrix_mult(G a, G b);
+G matrix_add(G a, G b);
+G matrix_sub(G a, G b);
 G matrix_dot(G a, G b);
 G matrix_inv(G a);
 G matrix_pinv(G a);
@@ -40,6 +42,12 @@ G matrix_copy(G a);
 G matrix_ident(UINT sz);
 G matrix_fill(UINT row, UINT col, INT val);
 G matrix_null(UINT row, UINT col);
+
+G matrix_row(G a, UINT row);
+G matrix_col(G a, UINT col);
+
+G matrix_vertical_concat(G a, G b);
+G matrix_horizontal_concat(G a, G b);
 
 INT matrix_diagonal(G a);
 INT matrix_get(G a, UINT row, UINT col);

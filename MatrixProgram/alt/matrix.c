@@ -104,6 +104,36 @@ G matrix_mult(G a, G b) {
 	return matrix;
 }
 
+
+G matrix_add(G a, G b) {
+	assert(a->col == b->col && a->row == b->row);
+	G matrix = matrix_new(a->row, a->col);
+
+	UINT i,j;
+
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			*(matrix->val + (matrix->col * j) + i) = *(a->val + (a->col * j) + i) + *(b->val + (b->col * j) + i);  
+		}
+
+	return matrix;
+}
+
+G matrix_sub(G a, G b) {
+	assert(a->col == b->col && a->row == b->row);
+	G matrix = matrix_new(a->row, a->col);
+
+	UINT i,j;
+
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			*(matrix->val + (matrix->col * j) + i) = *(a->val + (a->col * j) + i) - *(b->val + (b->col * j) + i);  
+		}
+
+	return matrix;
+}
+
+
 G matrix_dot(G a, G b) {
 	assert(a->row == b->row && a->col == b->col);
 	UINT i,j;
@@ -183,6 +213,34 @@ G matrix_fill(UINT row, UINT col, INT val) {
 G matrix_null(UINT row, UINT col) {
 	return matrix_fill(row,col, 0);
 }
+
+G matrix_row(G a, UINT row) {
+	assert(row < a->row);
+	G matrix = matrix_new(1, a->col);
+
+	UINT i;
+	for(i = 0; i < a->col; ++i) {
+*(matrix->val + (row*matrix->col) + i) = 
+*(a->val + (row*a->col) + i);
+	}
+
+	return matrix;
+}
+
+G matrix_col(G a, UINT col) {
+	assert(col < a->col);
+	G matrix = matrix_new(a->row, 1);
+
+	UINT i;
+	for(i = 0; i < a->row; ++i) {
+*(matrix->val + (i*matrix->col) + col) = 
+*(a->val + (i*a->col) + col);
+	}
+
+	return matrix;
+}
+
+
 
 INT matrix_diagonal(G a) {
 	assert(a->row == a->col);
@@ -267,7 +325,7 @@ void matrix_test() {
 	init_rand();
 
 	printf("Running unit tests...\n");
-	int test_count = 8;
+	int test_count = 11;
 
 	// test matrix identity 
 	printf("Test (1/%d): Testing Identity generator\n",test_count);
@@ -393,6 +451,72 @@ void matrix_test() {
 	}
 
 	matrix_delete(matrix_test);
+	printf("\tTest Passed\n");
+
+	printf("Test (9/%d): Testing add function\n", test_count);
+
+	sz = rand()%100;
+	UINT b = rand()%sz;
+
+	UINT row = rand()%10;
+	UINT col = rand()%10;
+
+	matrix_test = matrix_fill(row,col, sz);
+	matrix_clone = matrix_fill(row,col, b);
+	matrix_result = matrix_add(matrix_test, matrix_clone);
+
+
+	for(j = 0; j <matrix_test->row; ++j){
+		for(i = 0; i < matrix_test->col; ++i) {
+				assert(*(matrix_result->val + (j * matrix_result->col) + i) == sz + b);
+		}
+	}
+
+	matrix_delete(matrix_test);
+	matrix_delete(matrix_clone);
+	matrix_delete(matrix_result);
+	printf("\tTest Passed\n");
+
+
+	printf("Test (10/%d): Testing sub function\n", test_count);
+
+	sz = rand()%100;
+	b = rand()%sz;
+	
+	row = rand()%10;
+	col = rand()%10;
+
+	matrix_test = matrix_fill(row, col, sz);
+	matrix_clone = matrix_fill(row, col, b);
+	matrix_result = matrix_sub(matrix_test, matrix_clone);
+
+	for(j = 0; j <matrix_test->row; ++j){
+		for(i = 0; i < matrix_test->col; ++i) {
+				assert(*(matrix_result->val + (j * matrix_result->col) + i) == sz - b);
+		}
+	}
+
+	matrix_delete(matrix_test);
+	matrix_delete(matrix_clone);
+	matrix_delete(matrix_result);
+	printf("\tTest Passed\n");
+
+
+	printf("Test (11/%d): Testing dot function\n", test_count);
+
+	sz = rand()%100;
+	b = rand()%100;
+
+	matrix_test = matrix_fill(sz,b,1);
+	matrix_clone = matrix_rand(sz,b);
+
+	matrix_result = matrix_dot(matrix_test, matrix_clone);
+
+	assert(matrix_eq(matrix_result, matrix_clone));
+
+	matrix_delete(matrix_test);
+	matrix_delete(matrix_clone);
+	matrix_delete(matrix_result);
 	printf("\tTest Passed\n");
 
 
