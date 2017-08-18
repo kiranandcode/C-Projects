@@ -220,8 +220,7 @@ G matrix_row(G a, UINT row) {
 
 	UINT i;
 	for(i = 0; i < a->col; ++i) {
-*(matrix->val + (row*matrix->col) + i) = 
-*(a->val + (row*a->col) + i);
+		*(matrix->val + i) = *(a->val + (row*a->col) + i);
 	}
 
 	return matrix;
@@ -233,13 +232,58 @@ G matrix_col(G a, UINT col) {
 
 	UINT i;
 	for(i = 0; i < a->row; ++i) {
-*(matrix->val + (i*matrix->col) + col) = 
+*(matrix->val + (i*matrix->col)) = 
 *(a->val + (i*a->col) + col);
 	}
 
 	return matrix;
 }
 
+G matrix_vertical_concat(G a, G b) {
+	assert(a->col == b->col);
+
+	G matrix = matrix_new(a->row + b->row, a->col);
+
+	UINT i,j;
+
+	// copy over the matrix a
+	for(j = 0; j < a->row; ++j){
+		for(i = 0; i < a->col; ++i){
+	*(matrix->val + (j*a->col) + i) = *(a->val + (j*a->col) + i);
+		}
+	}
+	
+	for(j = 0; j < b->row; ++j){
+		for(i = 0; i < b->col; ++i){
+	*(matrix->val + ((j + a->row)*a->col) + i) = *(b->val + (j*b->col) + i);
+		}
+	}
+
+	return matrix;
+}
+
+G matrix_horizontal_concat(G a, G b) {
+	assert(a->row == b->row);
+
+	G matrix = matrix_new(a->row, a->col + b->col);
+
+	UINT i,j;
+
+	// copy over the matrix a
+	for(j = 0; j < a->row; ++j){
+		for(i = 0; i < a->col; ++i){
+	*(matrix->val + (j*a->col) + i) = *(a->val + (j*a->col) + i);
+		}
+	}
+	
+	for(j = 0; j < b->row; ++j){
+		for(i = 0; i < b->col; ++i){
+	*(matrix->val + (j * (a->col + b->col)) + i + (a->col)) = *(b->val + (j*b->col) + i);
+		}
+	}
+
+	return matrix;
+}
 
 
 INT matrix_diagonal(G a) {
