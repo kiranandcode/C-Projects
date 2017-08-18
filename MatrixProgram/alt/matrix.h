@@ -35,6 +35,11 @@ G matrix_mult(G a, G b);
 G matrix_add(G a, G b);
 G matrix_sub(G a, G b);
 G matrix_dot(G a, G b);
+
+G matrix_scalar_mult(G a, INT val);
+G matrix_scalar_add(G a, INT val);
+G matrix_scalar_sub(G a, INT val);
+
 G matrix_inv(G a);
 G matrix_pinv(G a);
 G matrix_map(G a, INT (*)(INT));

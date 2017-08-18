@@ -148,6 +148,45 @@ G matrix_dot(G a, G b) {
 	return matrix;
 }
 
+G matrix_scalar_mult(G a, INT val) {
+
+	assert(a);
+	G matrix = matrix_copy(a);
+	UINT j,i;
+
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			*(matrix->val + (matrix->col * j) + i) *= val;
+		}
+	return matrix;
+}
+
+G matrix_scalar_add(G a, INT val) {
+
+	assert(a);
+	G matrix = matrix_copy(a);
+	UINT j,i;
+
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			*(matrix->val + (matrix->col * j) + i) += val;
+		}
+	return matrix;
+}
+
+G matrix_scalar_sub(G a, INT val) {
+
+	assert(a);
+	G matrix = matrix_copy(a);
+	UINT j,i;
+
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			*(matrix->val + (matrix->col * j) + i) -= val;
+		}
+	return matrix;
+}
+
 G matrix_map(G a, INT (*f)(INT)){
 	assert(a && f);
 
