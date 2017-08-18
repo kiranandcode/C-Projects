@@ -38,10 +38,13 @@ G matrix_pinv(G a);
 G matrix_map(G a, INT (*)(INT));
 G matrix_copy(G a);
 G matrix_ident(UINT sz);
+G matrix_fill(UINT row, UINT col, INT val);
+G matrix_null(UINT row, UINT col);
 
 INT matrix_diagonal(G a);
 INT matrix_get(G a, UINT row, UINT col);
 INT matrix_det(G a);
+INT matrix_eq(G a, G b);
 
 void matrix_set(G a, UINT row, UINT col, INT val);
 void matrix_delete(G matrix);
