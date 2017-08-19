@@ -16,6 +16,13 @@
 #define N neuron_N
 struct N;
 typedef struct N *N;
+#define G matrix_G
 
+
+G neuron_apply(N neural_net, G inp);
+void neuron_feedforward(N neural_net, G inp, G *output);
+void neuron_feedbackward(N neural_net, G inp, G *output);
+
+#undef G
 #undef N
 #endif
