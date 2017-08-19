@@ -1,5 +1,7 @@
 #include "neuron.h"
+
 #include <math.h>
+#include <stdlib.h>
 
 #define N neuron_N 
 #define G matrix_G
@@ -9,6 +11,12 @@ struct neuron_N {
 	matrix_G *weights;
 };
 
+N neuron_new_uniform(UINT layers, UINT nodes) {
+	N neuron = malloc(sizeof(*neuron));
+	
+
+	return neuron;
+}
 
 INT sigmoid(INT val) {
 	INT result = 1 / (1 + exp(-1 * val));
