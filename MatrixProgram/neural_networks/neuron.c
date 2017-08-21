@@ -2,6 +2,8 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #define N neuron_N 
 #define G matrix_G
@@ -11,16 +13,70 @@ struct neuron_N {
 	matrix_G *weights;
 };
 
-N neuron_new_uniform(UINT layers, UINT nodes) {
-	N neuron = malloc(sizeof(*neuron));
-	
+static INT sigmoid(INT val);
+static INT normal_random(INT val);
 
-	return neuron;
+N neuron_new_uniform(UINT input_size,
+		UINT hidden_size,
+		UINT output_size) {
+	N neural_net = malloc(sizeof(*neural_net));
+	neural_net->layers = 2;
+
+	neural_net->weights = malloc(sizeof(*neural_net->weights)*neural_net->layers);
+
+	G new = matrix_new(hidden_size, input_size);
+		
+	G random = matrix_map(new, normal_random);
+
+	matrix_delete(new);
+
+	neural_net->weights[0] = random;
+
+	
+	new = matrix_new(output_size, hidden_size);
+
+	random = matrix_map(new, normal_random);
+
+	matrix_delete(new);
+
+	neural_net->weights[1] = random;
+
+	return neural_net;
 }
 
-INT sigmoid(INT val) {
+static INT sigmoid(INT val) {
 	INT result = 1 / (1 + exp(-1 * val));
 	return result;
+}
+
+static INT normal_random(INT val) {
+	// generates random values,
+	// using marsaglia method
+	static INT prev = -1.0;
+	INT x,y,s,f;
+
+	if(prev != -1.0){
+		x = prev;
+		prev = -1.0;
+		return x;
+	}
+
+	do {
+		x = (2.0*rand()/RAND_MAX) - 1.0;
+		y = (2.0*rand()/RAND_MAX) - 1.0;
+		s = x*x + y*y;
+	} while(s >= 1 || s == 0);
+
+
+	f = sqrt(-2.0 * log(s)/s);
+	x = x*f;
+	y = y*f;
+
+	x = ((x + 5)/10.0)*0.99 + 0.01;
+	y = ((y + 5)/10.0)*0.99 + 0.01;
+
+	prev = y;
+	return x;
 }
 
 INT oneminus(INT val) {
@@ -138,5 +194,37 @@ void neuron_train(N neural_net, G *err, G *inp, INT alpha) {
 		matrix_delete(neural_net->weights[i]);
 		neural_net->weights[i] = new_weights;
 
+	}
+}
+
+void neuron_print(N neural_net) {
+	char buf[50];
+	buf[0] = '\0';
+	char ext[20];
+	char ext2[20];
+	sprintf(ext, "neural_net(%s):", MATRIX_DESC_FMT_STR);
+	printf("%s\n", ext);
+	sprintf(buf, ext, neural_net->layers);
+
+	UINT i;
+
+	for(i = 0; i < neural_net->layers; ++i) {
+		sprintf(ext, "%s",MATRIX_DESC_FMT_STR);
+		printf("%s\n", ext);
+		sprintf(ext2, ext, matrix_col_get(neural_net->weights[i]));
+		strcat(buf,ext2);
+		strcat(buf, "->");
+		if(i == neural_net->layers-1){
+		sprintf(ext, "%s",MATRIX_DESC_FMT_STR);
+		sprintf(ext2, ext, matrix_row_get(neural_net->weights[i]));
+		strcat(buf,ext2);
+
+		}
+	}
+
+	printf("%s\n", buf);
+	
+	for(i = 0; i < neural_net->layers; ++i) {
+		matrix_print(neural_net->weights[i]);
 	}
 }
