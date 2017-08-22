@@ -24,6 +24,7 @@ G neuron_apply(N neural_net, G inp);
 void neuron_feedforward(N neural_net, G inp, G *output);
 void neuron_feedbackward(N neural_net, G inp, G *output);
 void neuron_train(N neural_net, G *err, G *inp, INT alpha);
+UINT neuron_layers(N neural_net);
 void neuron_print(N neural_net);
 
 #undef G

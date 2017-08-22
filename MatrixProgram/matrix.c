@@ -46,6 +46,44 @@ G matrix_new(UINT row, UINT col) {
 	return matrix;
 }
 
+G matrix_csv_fload(FILE *fp, UINT row, UINT col) {
+
+	G matrix = matrix_new(row,col);
+	UINT i;
+	//char buf[10];
+	//sprintf(buf, "%s,", MATRIX_TYPE_FMT_STR);
+
+	for(i = 0; i < row*col; ++i) {
+		fscanf(fp, MATRIX_TYPE_FMT_STR, matrix->val+i);
+		char c = getc(fp);
+
+		assert((c == ',' || c == EOF || c == '\0' || c == '\n'));
+	}
+	return matrix;
+}
+
+
+
+G matrix_load(UINT row, UINT col, INT *values){
+	G matrix = matrix_new(row, col);
+
+	UINT i;
+
+	for(i = 0; i < row * col; i++) {
+		matrix->val[i] = values[i];
+	}
+
+	return matrix;
+}
+
+UINT matrix_row_get(G matrix) {
+	return matrix->row;
+}
+
+UINT matrix_col_get(G matrix) {
+	return matrix->col;
+}
+
 G matrix_rand(UINT row, UINT col) {
 	init_rand();
 	G matrix = matrix_new(row,col);
@@ -450,7 +488,7 @@ G matrix_horizontal_concat(G a, G b) {
 
 		for(j = 0; j < a->col; ++j){
 			for(i = 0; i < a->row; ++i) {
-		*(matrix->val + (matrix->row * j) + i) = *(a->val + (a->col * i) + j);
+		*(matrix->val + (matrix->col * j) + i) = *(a->val + (a->col * i) + j);
 			}
 		}
 
@@ -560,7 +598,7 @@ G matrix_horizontal_concat(G a, G b) {
 			if(j == matrix->row - 1)
 				printf("]\n");
 			else
-				printf("\n");
+				printf(";\n");
 		}
 	}
 
@@ -813,4 +851,35 @@ G matrix_horizontal_concat(G a, G b) {
 
 		printf("\tTest Passed\n");
 
+
+}
+
+UINT matrix_high_value_row(G matrix, UINT row){
+	assert(row < matrix->row);
+
+	UINT highest_index = 0;
+	INT highest = *(matrix->val + (matrix->col * row));
+
+	UINT i;
+	for(i = 0; i < matrix->col; ++i){
+
+		INT val = *(matrix->val + (matrix->col * row) + i);
+		if(val > highest) (highest = val), highest_index = i;
+	}
+
+	return highest_index;
+}
+
+UINT matrix_high_value_col(G matrix, UINT col) {
+	assert(col < matrix->col);
+
+	UINT highest_index =0 ;
+	INT highest = *(matrix->val + col);
+
+	UINT i;
+	for(i = 0; i<matrix->row; ++i) {
+		INT val = *(matrix->val + (matrix->col * i) + col);
+		if(val > highest) (highest = val), highest_index = i;
+	}
+	return highest_index;
 }
