@@ -189,12 +189,22 @@ neuron_N train_network(UINT epochs) {
 	T tuple = malloc(sizeof(*tuple));
 	neuron_N neural_net = neuron_new_uniform(28*28,100,10);
 
+	double training_rate;
+	do{
+		printf("What training rate should be used to train the network?:\n");
+		scanf(" %lf", &training_rate);
+		if(training_rate < 0)
+			printf("ERROR: The training rate must be a positive real value\n");
+		else
+			printf("ERROR: You DON'T want a training rate > 10...\n");
+	} while(training_rate < 0 || training_rate > 10);
+
 	printf("Begining to train network...\n");
 	printf("Read input...\n");
 	UINT j;
 	if(epochs == 0) {
 		while(read_csv(fp,tuple, 28*28)){
-			neural_train(neural_net, tuple, 0.0025);
+			neural_train(neural_net, tuple, training_rate);
 			matrix_delete(tuple->input);
 		}
 	}
@@ -202,7 +212,7 @@ neuron_N train_network(UINT epochs) {
 	for(j =0; j < epochs; j++){
 	
 		read_csv(fp, tuple, 28*28);
-		neural_train(neural_net, tuple, 0.0025);
+		neural_train(neural_net, tuple, training_rate);
 
 		matrix_delete(tuple->input);
 
@@ -278,7 +288,7 @@ int main() {
 
 						  fclose(fp);
 					  }
-					  else c = 'n';
+					  else c = 'y';
 				  }
 				  while(c == 'n');
 
