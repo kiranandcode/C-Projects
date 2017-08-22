@@ -112,53 +112,72 @@ void neural_train(neuron_N neural_net, T tuple, INT alpha){
 	matrix_delete(error);
 }
 
-void neural_predict(neuron_N neural_net, matrix_G input) {
+int neural_predict(neuron_N neural_net, T tuple) {
 
-	matrix_G result = neuron_apply(neural_net, input);
+	matrix_G result = neuron_apply(neural_net, tuple->input);
 
-	UINT index = matrix_high_value_col(result,0);
+	UINT predicted = matrix_high_value_col(result,0);
+	UINT actual    = matrix_high_value_col(tuple->expected,0);
 
-	matrix_print(result);
 
-	char buf[20];
-	sprintf(buf, "%s is the closest match\n", MATRIX_DESC_FMT_STR);
-
-	printf(buf, index);
+	if(predicted == actual) {
+		
+		matrix_delete(result);
+		return 1;
+	}
+	else {
+		// got it wrong, print info
+		char buf[60];
+		sprintf(buf, "%s was the actual value, but the network predicted %s\n", MATRIX_DESC_FMT_STR, MATRIX_DESC_FMT_STR);
+		printf(buf, actual, predicted);
+		printf("Here is the expected value:\n");
+		matrix_print(tuple->expected);
+		printf("Here is the network's output:\n");
+		matrix_print(result);
+		matrix_delete(result);
+		return 0;
+	}
 }
 
 
 neuron_N train_network(UINT epochs) {
 	int result = -1;
 	char filename[100];
+	FILE *fp;
 	
 	do {
-	
-	switch(result) {
-		case STR_TO_SHORT:
-			printf("The string you submitted was too short (must be > 4).\n");
-			break;
-		case NOT_CSV_END:
-			printf("The filename you submitted did not end in csv.\n");
-			break;
-		case -1:
-			break;
-	}
-	printf("Please enter the training set(csv) name: ");
+		do {
+			
+			switch(result) {
+				case STR_TO_SHORT:
+					printf("The string you submitted was too short (must be > 4).\n");
+					break;
+				case NOT_CSV_END:
+					printf("The filename you submitted did not end in csv.\n");
+					break;
+				case -1:
+					break;
+			}
+			printf("Please enter the training set(csv) name: ");
 
 
-	scanf(" %100[^\n ][^\n]", filename);
-	getchar();
+			scanf(" %100[^\n ][^\n]", filename);
+			getchar();
 
 
-	} while((result = check_filename(filename)));
+		} while((result = check_filename(filename)));
 
 
-	printf("The data is assumed to be in the format - label (0-9) then 28*28 integral values between the range 0..256\n");
+		printf("The data is assumed to be in the format - label (0-9) then 28*28 integral values between the range 0..256\n");
 
-	printf("Loading the data...\n");
+		printf("Loading the data...\n");
 
-	FILE *fp = fopen(filename, "r");
+		fp = fopen(filename, "r");
 
+		if(fp == NULL)
+			printf("ERROR: Could not open the specified file\n");
+
+	}while(fp == NULL);
 
 
 	/*
@@ -173,6 +192,13 @@ neuron_N train_network(UINT epochs) {
 	printf("Begining to train network...\n");
 	printf("Read input...\n");
 	UINT j;
+	if(epochs == 0) {
+		while(read_csv(fp,tuple, 28*28)){
+			neural_train(neural_net, tuple, 0.0025);
+			matrix_delete(tuple->input);
+		}
+	}
+	else
 	for(j =0; j < epochs; j++){
 	
 		read_csv(fp, tuple, 28*28);
@@ -191,13 +217,192 @@ int main() {
 
 	initialize_expected_inputs();
 
-	neuron_N neural_net = train_network(1000);
+	printf("Gopiandcode's Neural Network C Library\n");
+	printf("--------------------------------------\n");
+	printf("%38s", "Intented to be used with MNIST csv data");
+	
+	printf("\n--------------------------------------\n\n");
 
-	FILE *sp = fopen("neural.net", "w");
+	printf("The cmd line interface supports:\n");
+	printf(" a) Train a new network?\n");
+	printf(" b) Test an existing network?\n");
 
-	neuron_serialize(sp, neural_net);
 
-	fclose(sp);
+	printf("What is your choice? (e to exit):\n");
+
+	char c;
+
+	do {
+		scanf(" %c", &c);
+	} while(c != 'e' && c != 'a' && c != 'b');
+
+	//neuron_N neural_net = train_network(3000);
+
+
+
+	switch(c) {
+
+
+		case 'a': {
+				  // train new network
+				  
+				  printf("How many epochs would you like?(select 0 to retrieve as many as in the training set):\n");
+
+				  long long epochs = 1;
+
+
+				  do {
+					  if(epochs < 0)
+						  printf("That value was <0. Please enter a positive value:\n");
+					  scanf("%lld", &epochs);
+				  } while(epochs < 0);
+
+				  
+				  neuron_N network = train_network(epochs);
+
+				  char buf[100];
+			          FILE *fp;
+				  char c = '\0';
+
+				  do {
+					  printf("What should I call the serialized network?:\n");
+					  scanf(" %100s", buf);
+
+					  fp = fopen(buf, "r");
+					  if(fp) {
+						  printf("WARNING: The filename specified already exists on the system.\n");
+						  printf("         Are you sure you would like to continue?(y/n):\n");
+						  do {
+							  scanf(" %c", &c);
+						  } while(!(c == 'y' || c == 'n'));
+
+						  fclose(fp);
+					  }
+					  else c = 'n';
+				  }
+				  while(c == 'n');
+
+				  fp = fopen(buf, "w");
+
+				  neuron_serialize(fp, network);
+
+				  return 0;
+			break;
+			  }
+		case 'b':{
+				 char buf[100];
+				 FILE *fp;
+				 do {
+					 // begin test set
+					 printf("What is the name of the neural network serialized file to open?:\n");
+
+					 scanf(" %s", buf);
+
+					 fp = fopen(buf, "r");
+					 
+					 if(fp == NULL)
+						 printf("ERROR: Could not open the file at the specified location\n");
+
+			  	 } while(fp == NULL);
+
+				 printf("Loading network...\n");
+				 neuron_N network = neuron_deserialize(fp);
+				 printf("Loaded!\n");
+				 fclose(fp);
+
+				 int result = -1;
+				 
+
+			         do {
+						do {
+							
+							switch(result) {
+								case STR_TO_SHORT:
+									printf("The string you submitted was too short (must be > 4).\n");
+									break;
+								case NOT_CSV_END:
+									printf("The filename you submitted did not end in csv.\n");
+									break;
+								case -1:
+									break;
+							}
+							printf("Please enter the testing set(csv) name: ");
+
+
+							scanf(" %100[^\n ][^\n]", buf);
+							getchar();
+
+
+						} while((result = check_filename(buf)));
+
+
+						printf("The data is assumed to be in the format - label (0-9) then 28*28 integral values between the range 0..256\n");
+
+						printf("Loading the data...\n");
+
+						fp = fopen(buf , "r");
+
+						if(fp == NULL)
+							printf("ERROR: Could not open the specified file\n");
+
+					}while(fp == NULL);
+
+					  printf("How many epochs would you like?(select 0 to retrieve as many as in the testing set):\n");
+					  long long epochs = 1;
+
+
+					  do {
+						  if(epochs < 0)
+							  printf("That value was <0. Please enter a positive value:\n");
+						  scanf("%lld", &epochs);
+					  } while(epochs < 0);
+
+					  T tuple = malloc(sizeof(*tuple));
+					  long long count = 0;
+					  long long correct = 0;
+					  
+					  if(epochs == 0) {
+
+						while(read_csv(fp,tuple, 28*28)){
+							count++;
+							if(neural_predict(network, tuple))
+								correct++;
+							matrix_delete(tuple->input);
+						}
+	
+
+					  } else {
+						  long long j;
+						for(j =0; j < epochs; j++){
+							printf("Iteration %lld/%lld\n", j, epochs);
+							int val = read_csv(fp, tuple, 28*28);
+							count++;
+							if(neural_predict(network, tuple))
+								correct++;
+							
+							matrix_delete(tuple->input);
+
+							if(!val) break;
+						}
+					  }
+
+					  fclose(fp);
+
+
+					  printf("Testing Completed\n");
+					  printf("Out of %lld tests, the network correctly identified %lld\n",
+							  count,correct);
+
+					  printf("Thus the network has a %2.2lf%% accuracy stat.\n",
+							  (double)correct/count * 100);
+
+					break;
+			 }
+
+		default:
+			return 0;
+	}
+
 
 
 
