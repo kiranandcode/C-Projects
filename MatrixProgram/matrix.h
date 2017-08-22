@@ -1,9 +1,10 @@
 #ifndef MATRIX_H
 #define MATRIX_H
+#include <stdio.h>
 #define G matrix_G 
 
 #ifndef MATRIX_MULT_BOUNDARY
-#define MATRIX_MULT_BOUNDARY 100
+#define MATRIX_MULT_BOUNDARY 100000
 #endif
 
 #ifndef MATRIX_TYPE
@@ -15,11 +16,11 @@
 #endif
 
 #ifndef MATRIX_DESC_FMT_STR
-#define MATRIX_DESC_FMT_STR "%d"
+#define MATRIX_DESC_FMT_STR "%lu"
 #endif
 
 #ifndef MATRIX_TYPE_FMT_STR
-#define MATRIX_TYPE_FMT_STR "%f"
+#define MATRIX_TYPE_FMT_STR "%lf"
 #endif
 
 #define INT MATRIX_TYPE
@@ -30,6 +31,12 @@ struct G;
 typedef struct G *G;
 
 G matrix_new(UINT row, UINT col);                  // implemented
+G matrix_csv_fload(FILE *fp, UINT row, UINT col);
+G matrix_load(UINT row, UINT col, INT *values);
+//---------------------------------------------------------------
+UINT matrix_row_get(G matrix);
+UINT matrix_col_get(G matrix);
+//---------------------------------------------------------------
 G matrix_rand(UINT row, UINT col);                 // implemented
 G matrix_mult(G a, G b); 
 G matrix_add(G a, G b);                            // implemented
@@ -66,6 +73,12 @@ INT matrix_eq(G a, G b);                           // implemented
 void matrix_set(G a, UINT row, UINT col, INT val); // implemented
 void matrix_delete(G matrix);                      // implemented
 void matrix_print(G matrix);                       // implemented
+// -----------------------------------------------------------
+UINT matrix_high_value_row(G matrix, UINT col);
+UINT matrix_high_value_col(G matrix, UINT col);
+// -----------------------------------------------------------
+void matrix_serialize(FILE *fp, G matrix);
+G    matrix_deserialize(FILE *fp);
 // -----------------------------------------------------------
 void matrix_test();                             
 
