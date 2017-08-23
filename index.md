@@ -10,6 +10,9 @@ Now that you're here, why not stick around and listen to some of the projects yo
 
 # Snippets of Interest
 
+## [Neural Network](https://github.com/Gopiandcode/C-Projects/tree/master/MatrixProgram/neural_networks)
+Finally got round to building a neural network in C. A more complete description can be found at the link. Building this was quite enjoyable, particularly reaching the end and running it and watching the network train. The neural network structures in the library can be used in a variety of situations, and could be tweaked at a later date to support more architectures of networks - but the proof of concept program built by the application is intended to be used with a csv formatted version of the MNIST handwriting dataset. It als uses a matrix library I built as well(see below).
+
 ## [Andres_problem](https://github.com/Gopiandcode/C-Projects/blob/master/Andres%20problem.c)
 This was one of the first things I had ever programmed in C - this was a program to calculate all the possible ways of summing a set of numbers to produce a specified value. At the time, I knew nothing of dynamic programming, or any other programming paradigm, and somehow crudely stuck together a solution using recursion. It worked given the question set my friend had presented me, however for any larger values was extremely slow.
 
@@ -35,7 +38,9 @@ This was one of the first library-like collection of components I made - having 
 
 
 ## [Matrix Library](https://github.com/Gopiandcode/C-Projects/tree/master/MatrixProgram)
-This is an ongoing project to implement a functional matrix library into C, with the hope that I may utilize it to implement ML algorithms in the summer when I have more free time.
+---This is an ongoing project to implement a functional matrix library into C, with the hope that I may utilize it to implement ML algorithms in the summer when I have more free time.---
+Edited: Rebuilt the library from the ground up. Over the summer I read C: Interfaces and Implementations, which is a highly recommended book for those attempting to build more reusable software in C. With that new knowledge in hand, I rebuilt the library following the pointers I had learn't from the book. Obviously, a matrix library is only as good as the projects it's used in, and so I built... a [neural network](https://github.com/Gopiandcode/C-Projects/tree/master/MatrixProgram/neural_networks)!
+
 
 ## [Graph Library](https://github.com/Gopiandcode/C-Projects/tree/master/GraphUtils)
 One of the newest additions to my collection of C libraries - this was constructed by my desire to reinforce my knowledge of graph algorithms and to provide a general purpose library to use for graph related tasks. As one of my latest libraries, it has a particularly different code style to the others, and I feel, given my greater knowledge, has more reusability as compared to prior libraries. This fact was brought to my attention when I was implemnting more graph algorithms and vary rarely needed to construct new data types to represent the data.
