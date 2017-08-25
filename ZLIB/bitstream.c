@@ -39,6 +39,7 @@ struct B {
 
 
 B bitstream_new(unsigned int length) {
+	assert(length > 0);
 	B bitstream;
 	NEW(bitstream);
 
@@ -80,6 +81,7 @@ B bitstream_concat(B bitstream_a, B bitstream_b) {
 		if(i != (int)bitstream_b->position) {
 			bitstream_insert(result, (unsigned char)bitstream_b->stream[i], 8);
 		} else {
+			if(bitstream_b->offset)
 			bitstream_insert(result, bitstream_b->stream[i], bitstream_b->offset);
 		}
 	}
@@ -214,7 +216,7 @@ void bitstream_print(B stream) {
 				printf("1");
 			else printf("0");
 		}
-		if(i != (int)stream->length -1)
-			printf(",");
+//		if(i != (int)stream->length -1)
+//			printf(",");
 	}
 }

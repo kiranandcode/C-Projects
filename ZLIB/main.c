@@ -11,11 +11,11 @@ int main() {
 
 	bitstream_insert(stream, 0x55, 8);
 
-	bitstream_big_endian_insert(stream, 0x55, 8);
+	bitstream_big_endian_insert(stream, 0x35, 6);
 	
-	bitstream_big_endian_insert(stream, 0x55, 3);
+	bitstream_big_endian_insert(stream, 0x53, 2);
 	
-	//bitstream_trim(stream);
+	bitstream_trim(stream);
 
 	bitstream_print(stream);
 
@@ -23,11 +23,16 @@ int main() {
 
         bitstream_B copy = bitstream_copy(stream);
 
+	int i;
+	for(i = 0; i < 16; i++)
+		printf("-");
 	bitstream_print(copy);
 
 	printf("\n");
 	
 	bitstream_B concat = bitstream_concat(stream,copy);
+
+	bitstream_trim(concat);
 
 	bitstream_print(concat);
 
