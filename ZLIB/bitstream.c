@@ -49,6 +49,42 @@ B bitstream_new(unsigned int length) {
 	return bitstream;
 }
 
+void bitstream_delete(B bitstream) {
+	free(bitstream->stream);
+	free(bitstream);
+}
+
+
+B bitstream_copy(B bitstream) {
+	B copy;
+	NEW(copy);
+	copy->length = bitstream->length;
+	copy->position = bitstream->position;
+	copy->offset  = bitstream->offset;
+	copy->stream = calloc(sizeof(char), bitstream->length);
+	int i;
+
+	for(i = 0; i <(int) copy->position+1; ++i) {
+		copy->stream[i] = bitstream->stream[i];
+	}
+
+	return copy;
+}
+
+
+B bitstream_concat(B bitstream_a, B bitstream_b) {
+	B result = bitstream_copy(bitstream_a);
+	
+	int i;
+	for(i = 0; i < (int) bitstream_b->position+1; ++i) {
+		if(i != (int)bitstream_b->position) {
+			bitstream_insert(result, (unsigned char)bitstream_b->stream[i], 8);
+		} else {
+			bitstream_insert(result, bitstream_b->stream[i], bitstream_b->offset);
+		}
+	}
+	return result;
+}
 void bitstream_insert(B stream, unsigned char sequence, unsigned int bitlength) {
 	assert(bitlength <= 8 && bitlength >= 1);
 	assert(stream->offset < 8 && stream->offset >= 0);
@@ -72,14 +108,14 @@ void bitstream_insert(B stream, unsigned char sequence, unsigned int bitlength) 
 #else
 		if(stream->position >= stream->length)
 		{
-		stream->stream = realloc(stream->stream, sizeof(char) * (stream->length + STREAM_INCREMENT_SIZE));
-		stream->length += STREAM_INCREMENT_SIZE;
-		int i;
-		for(i = stream->position; i < (int)stream->length; ++i) {
-		stream->stream[i] = 0;
+			stream->length = stream->length + STREAM_INCREMENT_SIZE;
+			stream->stream = realloc(stream->stream, sizeof(char) * (stream->length));
+			int i;
+			for(i = stream->position; i < (int)stream->length; ++i) {
+				stream->stream[i] = 0;
+			}
 		}
 		stream->stream[stream->position] |= second_byte;
-		}
 #endif
 	}
 	stream->offset = (stream->offset + bitlength) % 8;
@@ -127,14 +163,14 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 #else
 		if(stream->position >= stream->length)
 		{
-		stream->stream = realloc(stream->stream, sizeof(char) * (stream->length + STREAM_INCREMENT_SIZE));
-		stream->length += STREAM_INCREMENT_SIZE;
-		int i;
-		for(i = stream->position; i < (int)stream->length; ++i) {
-		stream->stream[i] = 0;
+			stream->stream = realloc(stream->stream, sizeof(char) * (stream->length + STREAM_INCREMENT_SIZE));
+			stream->length += STREAM_INCREMENT_SIZE;
+			int i;
+			for(i = stream->position; i < (int)stream->length; ++i) {
+				stream->stream[i] = 0;
+			}
 		}
 		stream->stream[stream->position] |= second_byte;
-		}
 #endif
 	}
 	stream->offset = (stream->offset + bitlength) % 8;
@@ -147,7 +183,7 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 
 void bitstream_trim(B bitstream) {
 	if(bitstream->length > bitstream->position) {
-		bitstream->length = bitstream->position;
+		bitstream->length = bitstream->position + 1;
 		bitstream->stream = realloc(bitstream->stream, sizeof(char) * (bitstream->length));
 	}
 
@@ -178,5 +214,7 @@ void bitstream_print(B stream) {
 				printf("1");
 			else printf("0");
 		}
+		if(i != (int)stream->length -1)
+			printf(",");
 	}
 }
