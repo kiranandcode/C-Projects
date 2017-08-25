@@ -105,7 +105,7 @@ void neural_train(neuron_N neural_net, T tuple, INT alpha){
 
 	}
 
-	for(i = 0; i < layers; i++) {
+	for(i = 0; i <= layers; i++) {
 		matrix_delete(errors[i]);
 	}
 
