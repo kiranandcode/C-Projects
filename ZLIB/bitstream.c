@@ -145,8 +145,26 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 #endif
 }
 
+void bitstream_trim(B bitstream) {
+	if(bitstream->length > bitstream->position) {
+		bitstream->length = bitstream->position;
+		bitstream->stream = realloc(bitstream->stream, sizeof(char) * (bitstream->length));
+	}
 
 
+}
+
+void bitstream_get_stream(B bitstream, unsigned char *stream, unsigned int length) {
+
+	assert(bitstream);
+	assert(stream);
+	int i;
+	int max_length = length > bitstream->length ? bitstream->length : length;
+
+	for(i = 0; i < max_length; i++) {
+		stream[i] = bitstream->stream[i];
+	}
+}
 
 
 void bitstream_print(B stream) {
