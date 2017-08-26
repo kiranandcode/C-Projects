@@ -319,9 +319,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 		if(offset >= 512) {
 			offset -= 512;
 			bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			bitstream_big_endian_insert(stream, offset,8);
 		} else {
 			bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			bitstream_big_endian_insert(stream, offset,8);
 		}
 	} else if(length > 2048 && length < 3073) {
@@ -335,8 +347,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 			if(offset >= 512) {
 				offset -= 512;
 				bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			} else {
 				bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			}
 
 		} else {
@@ -346,8 +370,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 			if(offset >= 512) {
 				offset -= 512;
 				bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			} else {
+
 				bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			}
 		}
 
@@ -363,8 +400,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 			if(offset >= 512) {
 				offset -= 512;
 				bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			} else {
 				bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			}
 
 		} else {
@@ -374,8 +423,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 			if(offset >= 512) {
 				offset -= 512;
 				bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			} else {
 				bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			}
 		}
 
@@ -395,8 +456,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 			if(offset >= 512) {
 				offset -= 512;
 				bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			} else {
 				bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			}
 
 		} else {
@@ -406,8 +479,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 			if(offset >= 512) {
 				offset -= 512;
 				bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			} else {
 				bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 			}
 		}
 
@@ -422,8 +507,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 				if(offset >= 512) {
 					offset -= 512;
 					bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				} else {
 					bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				}
 
 			} else {
@@ -433,8 +530,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 				if(offset >= 512) {
 					offset -= 512;
 					bitstream_insert(stream, 1, 1);
+							if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				} else {
+
 					bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				}
 			}
 
@@ -458,8 +568,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 				if(offset >= 512) {
 					offset -= 512;
 					bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				} else {
 					bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				}
 
 			} else {
@@ -469,8 +591,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 				if(offset >= 512) {
 					offset -= 512;
 					bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				} else {
 					bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				}
 			}
 
@@ -485,8 +619,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 				if(offset >= 512) {
 					offset -= 512;
 					bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				} else {
 					bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				}
 
 			} else {
@@ -496,8 +642,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 				if(offset >= 512) {
 					offset -= 512;
 					bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				} else {
 					bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 				}
 			}
 
@@ -525,8 +683,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -536,8 +707,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -552,8 +735,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -563,8 +759,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -587,8 +796,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -598,8 +819,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -614,8 +847,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -625,8 +871,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -658,8 +916,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -669,8 +939,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -685,8 +968,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -696,9 +992,22 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
+
 				}
 
 
@@ -720,8 +1029,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -731,8 +1052,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -747,8 +1081,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -758,8 +1104,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -773,9 +1132,6 @@ void deflate_distance_insert(B stream, unsigned int length) {
 		bitstream_insert(stream, 28, 5);
 		unsigned int offset = length - 16385;
 
-		if(offset >= 8192) {
-			offset -= 8192;
-			bitstream_insert(stream, 1,1);
 			if(offset >= 4096) {
 				offset -= 4096;
 				bitstream_insert(stream, 1,1);
@@ -791,8 +1147,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -802,8 +1170,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -818,8 +1198,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -829,8 +1221,21 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -853,8 +1258,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -864,8 +1281,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -880,8 +1309,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -891,8 +1332,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -902,144 +1355,12 @@ void deflate_distance_insert(B stream, unsigned int length) {
 		}
 
 	
-		} else {
-			bitstream_insert(stream, 0,1);
-			if(offset >= 4096) {
-				offset -= 4096;
-				bitstream_insert(stream, 1,1);
-
-			if(offset >= 2048) {
-					offset -= 2048;
-					bitstream_insert(stream, 1,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-			} else {
-					
-					bitstream_insert(stream,0,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-
-			}
-
-
-
-		} else {
-				bitstream_insert(stream, 0,1);
-
-			if(offset >= 2048) {
-					offset -= 2048;
-					bitstream_insert(stream, 1,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-			} else {
-					
-					bitstream_insert(stream,0,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-
-			}
-
-		}
-
-
-		}
 		bitstream_big_endian_insert(stream, offset, 8);
 	} else if(length > 24576 && length < 32769) {
 
 		bitstream_insert(stream, 29, 5);
 		unsigned int offset = length - 24577;
 
-		if(offset >= 8192) {
-			offset -= 8192;
-			bitstream_insert(stream, 1,1);
 			if(offset >= 4096) {
 				offset -= 4096;
 				bitstream_insert(stream, 1,1);
@@ -1055,8 +1376,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -1066,8 +1399,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -1082,8 +1427,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -1093,8 +1450,22 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
+
+
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -1117,8 +1488,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -1128,8 +1511,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -1144,8 +1539,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 
 				} else {
@@ -1155,8 +1562,20 @@ void deflate_distance_insert(B stream, unsigned int length) {
 					if(offset >= 512) {
 						offset -= 512;
 						bitstream_insert(stream, 1, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					} else {
 						bitstream_insert(stream, 0, 1);
+						if(offset >= 256) {
+							offset -= 256;
+							bitstream_insert(stream,1,1);
+						} else {
+							bitstream_insert(stream,0,1);
+						}
 					}
 				}
 
@@ -1166,135 +1585,6 @@ void deflate_distance_insert(B stream, unsigned int length) {
 		}
 
 	
-		} else {
-			bitstream_insert(stream, 0,1);
-			if(offset >= 4096) {
-				offset -= 4096;
-				bitstream_insert(stream, 1,1);
-
-			if(offset >= 2048) {
-					offset -= 2048;
-					bitstream_insert(stream, 1,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-			} else {
-					
-					bitstream_insert(stream,0,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-
-			}
-
-
-
-		} else {
-				bitstream_insert(stream, 0,1);
-
-			if(offset >= 2048) {
-					offset -= 2048;
-					bitstream_insert(stream, 1,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-			} else {
-					
-					bitstream_insert(stream,0,1);
-
-				if(offset >= 1024) {
-					offset -= 1024;
-					bitstream_insert(stream, 1, 1);
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-
-				} else {
-					bitstream_insert(stream, 0, 1);
-
-
-					if(offset >= 512) {
-						offset -= 512;
-						bitstream_insert(stream, 1, 1);
-					} else {
-						bitstream_insert(stream, 0, 1);
-					}
-				}
-
-
-			}
-
-		}
-
-
-		}
 		bitstream_big_endian_insert(stream, offset, 8);
 	} else {
 		assert(0);

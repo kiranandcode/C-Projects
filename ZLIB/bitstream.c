@@ -162,10 +162,9 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 #endif
 
 
-
 	sequence = to_big_endian(sequence);
 	sequence >>= 8 -(int) bitlength;
-
+	
 	unsigned char first_byte = ((sequence & bit_masks[bitlength]) << stream->offset) & ~bit_masks[stream->offset];
 	unsigned char second_byte = 0;
 	stream->stream[stream->position] |= first_byte;
