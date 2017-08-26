@@ -107,7 +107,7 @@ void bitstream_insert(B stream, unsigned char sequence, unsigned int bitlength) 
 
 	if(stream->offset + bitlength >= 8) {
 
-		second_byte =  (sequence << (8 - (int)stream->offset)) & bit_masks[(stream->offset + bitlength - 8)];
+		second_byte =  (sequence >> (8 - (int)stream->offset)) & bit_masks[(stream->offset + bitlength - 8)];
 
 //	printf("second_byte = %#x\n", second_byte);
 
@@ -172,7 +172,7 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 
 	if(stream->offset + bitlength >= 8) {
 
-		second_byte =  (sequence << (8 - (int)stream->offset)) & bit_masks[(stream->offset + bitlength - 8)];
+		second_byte =  (sequence >> (8 - (int)stream->offset)) & bit_masks[(stream->offset + bitlength - 8)];
 		//second_byte =  (sequence >> (stream->offset + bitlength - 8)) & bit_masks[(stream->offset + bitlength - 8)];
 
 

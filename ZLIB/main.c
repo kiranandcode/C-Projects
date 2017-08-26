@@ -10,7 +10,7 @@ int main() {
 //	printf("Inserting 12\n");
 
 	bitstream_B stream = bitstream_new(1);
-	deflate_insert(stream, 12);
+        deflate_distance_insert(stream, 4);
 
 
 	bitstream_print(stream);
@@ -18,16 +18,16 @@ int main() {
 
 //	printf("Inserting 240\n");
 	bitstream_B another = bitstream_new(1);
-	deflate_insert(another, 61);
+	deflate_distance_insert(another, 1047);
 	
 	int i;
-	for(i = 0; i< 10; i++) printf("-");
+	for(i = 0; i< 5; i++) printf("-");
 	bitstream_print(another);
 	printf("\n");
 
 	
 //	printf("Inserting 240\n");
-	deflate_insert(stream, 61);
+	deflate_distance_insert(stream, 1047);
 	bitstream_print(stream);
 	printf("\n");
 }

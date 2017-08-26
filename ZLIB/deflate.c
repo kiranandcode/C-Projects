@@ -4,7 +4,7 @@
 #define B bitstream_B
 
 
-void deflate_insert(B stream, unsigned int length) {
+void deflate_length_insert(B stream, unsigned int length) {
 
 	switch(length) {
 		case 3:case 4:case 5:case 6:case 7:case 8:case 9:case 10:
@@ -233,4 +233,1072 @@ void deflate_insert(B stream, unsigned int length) {
 			assert(0);
 			break;
 	}
+}
+
+
+void deflate_distance_insert(B stream, unsigned int length) {
+
+	assert(length > 0);
+	if(length < 5) {
+		bitstream_insert(stream, length-1, 5);
+	} else if(length == 5 || length ==6) {
+
+		bitstream_insert(stream, 4, 5);
+		if(length == 5)
+			bitstream_insert(stream, 0,1);
+		else
+			bitstream_insert(stream, 1,1);
+
+	} else if(length == 7 || length == 8) {
+
+		bitstream_insert(stream, 5, 5);
+		if(length == 7)
+			bitstream_insert(stream, 0,1);
+		else
+			bitstream_insert(stream, 1,1);
+	} else if( length  > 8 && length < 13){
+
+		bitstream_insert(stream, 6, 5);
+		bitstream_big_endian_insert(stream, length-9,2);
+	} else if(length > 12 && length < 17) {
+		bitstream_insert(stream, 7,5);
+		bitstream_big_endian_insert(stream, length-13,2);
+	} else if(length > 16 && length < 25) {
+		bitstream_insert(stream,8,5);
+		bitstream_big_endian_insert(stream, length-17,3);
+	} else if(length > 24 && length < 33) {
+		bitstream_insert(stream, 9,5);
+		bitstream_big_endian_insert(stream, length-25,3);
+	} else if(length > 32 && length < 49) {
+		bitstream_insert(stream,10,5);
+		bitstream_big_endian_insert(stream, length-33,4);
+	} else if(length > 48 && length < 65) {
+		bitstream_insert(stream, 11, 5);
+		bitstream_big_endian_insert(stream, length-49,4);
+	} else if(length > 64 && length < 97) {
+		bitstream_insert(stream,12,5);
+		bitstream_big_endian_insert(stream, length-65,5);
+	} else if(length > 96 && length < 129) {
+		bitstream_insert(stream, 13, 5);
+		bitstream_big_endian_insert(stream, length-97,5);
+	} else if(length > 128 && length  < 193) {
+		bitstream_insert(stream,14,5);
+		bitstream_big_endian_insert(stream, length-129,6);
+	} else if(length > 192 && length < 257) {
+		bitstream_insert(stream,15,5);
+		bitstream_big_endian_insert(stream, length-193,6);
+	} else if(length > 256 && length < 385) {
+		bitstream_insert(stream, 16,5);
+		bitstream_big_endian_insert(stream, length-257,7);
+	} else if(length > 384 && length < 513) {
+		bitstream_insert(stream, 17, 5);
+		bitstream_big_endian_insert(stream, length-385,7);
+	} else if(length > 512 && length < 769) {
+		bitstream_insert(stream, 18,5);
+		bitstream_big_endian_insert(stream, length-513,8);
+	} else if(length > 768 && length < 1025) {
+		bitstream_insert(stream, 19,5);
+		bitstream_big_endian_insert(stream, length-769,8);
+	} else if(length > 1024 && length < 1537) {
+		bitstream_insert(stream, 20, 5);
+		unsigned int offset = length - 1025;
+
+		if(offset >= 512) {
+			offset -= 512;
+			bitstream_insert(stream, 1, 1);
+			bitstream_big_endian_insert(stream, offset,8);
+		} else {
+			bitstream_insert(stream, 0, 1);
+			bitstream_big_endian_insert(stream, offset,8);
+		}
+	} else if(length > 1536 && length < 2049) {
+
+		bitstream_insert(stream, 21, 5);
+		unsigned int offset = length - 1536;
+
+		if(offset >= 512) {
+			offset -= 512;
+			bitstream_insert(stream, 1, 1);
+			bitstream_big_endian_insert(stream, offset,8);
+		} else {
+			bitstream_insert(stream, 0, 1);
+			bitstream_big_endian_insert(stream, offset,8);
+		}
+	} else if(length > 2048 && length < 3073) {
+		bitstream_insert(stream, 22, 5);
+		unsigned int offset = length - 2049;
+
+		if(offset >= 1024) {
+			offset -= 1024;
+			bitstream_insert(stream, 1, 1);
+
+			if(offset >= 512) {
+				offset -= 512;
+				bitstream_insert(stream, 1, 1);
+			} else {
+				bitstream_insert(stream, 0, 1);
+			}
+
+		} else {
+			bitstream_insert(stream, 0, 1);
+
+
+			if(offset >= 512) {
+				offset -= 512;
+				bitstream_insert(stream, 1, 1);
+			} else {
+				bitstream_insert(stream, 0, 1);
+			}
+		}
+
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else if(length > 3072 && length < 4097) {
+		bitstream_insert(stream, 23, 5);
+		unsigned int offset = length - 3073;
+
+		if(offset >= 1024) {
+			offset -= 1024;
+			bitstream_insert(stream, 1, 1);
+
+			if(offset >= 512) {
+				offset -= 512;
+				bitstream_insert(stream, 1, 1);
+			} else {
+				bitstream_insert(stream, 0, 1);
+			}
+
+		} else {
+			bitstream_insert(stream, 0, 1);
+
+
+			if(offset >= 512) {
+				offset -= 512;
+				bitstream_insert(stream, 1, 1);
+			} else {
+				bitstream_insert(stream, 0, 1);
+			}
+		}
+
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else if(length > 4096 && length < 6145) {
+		bitstream_insert(stream, 24, 5);
+		unsigned int offset = length - 4097;
+
+		if(offset >= 2048) {
+			offset -= 2048;
+			bitstream_insert(stream, 1,1);
+
+		if(offset >= 1024) {
+			offset -= 1024;
+			bitstream_insert(stream, 1, 1);
+
+			if(offset >= 512) {
+				offset -= 512;
+				bitstream_insert(stream, 1, 1);
+			} else {
+				bitstream_insert(stream, 0, 1);
+			}
+
+		} else {
+			bitstream_insert(stream, 0, 1);
+
+
+			if(offset >= 512) {
+				offset -= 512;
+				bitstream_insert(stream, 1, 1);
+			} else {
+				bitstream_insert(stream, 0, 1);
+			}
+		}
+
+		} else {
+				
+				bitstream_insert(stream,0,1);
+
+			if(offset >= 1024) {
+				offset -= 1024;
+				bitstream_insert(stream, 1, 1);
+
+				if(offset >= 512) {
+					offset -= 512;
+					bitstream_insert(stream, 1, 1);
+				} else {
+					bitstream_insert(stream, 0, 1);
+				}
+
+			} else {
+				bitstream_insert(stream, 0, 1);
+
+
+				if(offset >= 512) {
+					offset -= 512;
+					bitstream_insert(stream, 1, 1);
+				} else {
+					bitstream_insert(stream, 0, 1);
+				}
+			}
+
+
+		}
+
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else if(length > 6144 && length < 8193) {
+
+		bitstream_insert(stream, 25, 5);
+		unsigned int offset = length - 6145;
+
+		if(offset >= 2048) {
+				offset -= 2048;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 1024) {
+				offset -= 1024;
+				bitstream_insert(stream, 1, 1);
+
+				if(offset >= 512) {
+					offset -= 512;
+					bitstream_insert(stream, 1, 1);
+				} else {
+					bitstream_insert(stream, 0, 1);
+				}
+
+			} else {
+				bitstream_insert(stream, 0, 1);
+
+
+				if(offset >= 512) {
+					offset -= 512;
+					bitstream_insert(stream, 1, 1);
+				} else {
+					bitstream_insert(stream, 0, 1);
+				}
+			}
+
+		} else {
+				
+				bitstream_insert(stream,0,1);
+
+			if(offset >= 1024) {
+				offset -= 1024;
+				bitstream_insert(stream, 1, 1);
+
+				if(offset >= 512) {
+					offset -= 512;
+					bitstream_insert(stream, 1, 1);
+				} else {
+					bitstream_insert(stream, 0, 1);
+				}
+
+			} else {
+				bitstream_insert(stream, 0, 1);
+
+
+				if(offset >= 512) {
+					offset -= 512;
+					bitstream_insert(stream, 1, 1);
+				} else {
+					bitstream_insert(stream, 0, 1);
+				}
+			}
+
+
+		}
+
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else if(length > 8192 && length < 12289) {
+
+		bitstream_insert(stream, 26, 5);
+		unsigned int offset = length - 8193;
+
+		if(offset >= 4096) {
+				offset -= 4096;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+
+
+		} else {
+				bitstream_insert(stream, 0,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+		}
+
+		bitstream_big_endian_insert(stream, offset, 8);
+		
+	} else if(length > 12288 && length < 16385) {
+
+
+		bitstream_insert(stream, 27, 5);
+		unsigned int offset = length - 12289;
+
+		if(offset >= 4096) {
+				offset -= 4096;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+
+
+		} else {
+				bitstream_insert(stream, 0,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+		}
+
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else if(length > 16384 && length < 24577) {
+		bitstream_insert(stream, 28, 5);
+		unsigned int offset = length - 16385;
+
+		if(offset >= 8192) {
+			offset -= 8192;
+			bitstream_insert(stream, 1,1);
+			if(offset >= 4096) {
+				offset -= 4096;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+
+
+		} else {
+				bitstream_insert(stream, 0,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+		}
+
+	
+		} else {
+			bitstream_insert(stream, 0,1);
+			if(offset >= 4096) {
+				offset -= 4096;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+
+
+		} else {
+				bitstream_insert(stream, 0,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+		}
+
+
+		}
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else if(length > 24576 && length < 32769) {
+
+		bitstream_insert(stream, 29, 5);
+		unsigned int offset = length - 24577;
+
+		if(offset >= 8192) {
+			offset -= 8192;
+			bitstream_insert(stream, 1,1);
+			if(offset >= 4096) {
+				offset -= 4096;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+
+
+		} else {
+				bitstream_insert(stream, 0,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+		}
+
+	
+		} else {
+			bitstream_insert(stream, 0,1);
+			if(offset >= 4096) {
+				offset -= 4096;
+				bitstream_insert(stream, 1,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+
+
+		} else {
+				bitstream_insert(stream, 0,1);
+
+			if(offset >= 2048) {
+					offset -= 2048;
+					bitstream_insert(stream, 1,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+			} else {
+					
+					bitstream_insert(stream,0,1);
+
+				if(offset >= 1024) {
+					offset -= 1024;
+					bitstream_insert(stream, 1, 1);
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+
+				} else {
+					bitstream_insert(stream, 0, 1);
+
+
+					if(offset >= 512) {
+						offset -= 512;
+						bitstream_insert(stream, 1, 1);
+					} else {
+						bitstream_insert(stream, 0, 1);
+					}
+				}
+
+
+			}
+
+		}
+
+
+		}
+		bitstream_big_endian_insert(stream, offset, 8);
+	} else {
+		assert(0);
+	}
+
+
 }
