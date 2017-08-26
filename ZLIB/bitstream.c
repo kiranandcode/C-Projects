@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+// #define DEBUG
 
 #define B bitstream_B
 #define NEW(o) ((o) = malloc(sizeof(*(o))))
@@ -26,8 +27,7 @@ static unsigned char bit_masks[] = {
 	/* 0000 1111 */ 0x0F,
 	/* 0001 1111 */ 0x1F,
 	/* 0011 1111 */ 0x3F,
-	/* 0111 1111 */ 0x7F,
-	/* 1111 1111 */ 0xFF
+	/* 0111 1111 */ 0x7F, /* 1111 1111 */ 0xFF
 };
 
 struct B {
@@ -93,15 +93,23 @@ void bitstream_insert(B stream, unsigned char sequence, unsigned int bitlength) 
 #ifdef FIXED_SIZE
 	assert(stream->position < stream->length);
 #endif
+#ifdef DEBUG
+	printf("Before inserting %#x, offset %u, position %u, length %u, bitlength %u\n",
+			sequence, stream->offset, stream->position, stream->length, bitlength);
+#endif
+
+
 
 	unsigned char first_byte = ((sequence & bit_masks[bitlength]) << stream->offset) & ~bit_masks[stream->offset];
 	unsigned char second_byte = 0;
+//	printf("first_byte = %#x\n", first_byte);
 	stream->stream[stream->position] |= first_byte;
 
 	if(stream->offset + bitlength >= 8) {
 
-		second_byte =  (sequence >> (stream->offset + bitlength - 8)) & bit_masks[(stream->offset + bitlength - 8)];
+		second_byte =  (sequence << (8 - (int)stream->offset)) & bit_masks[(stream->offset + bitlength - 8)];
 
+//	printf("second_byte = %#x\n", second_byte);
 
 		stream->position++;
 #ifdef FIXED_SIZE
@@ -117,13 +125,14 @@ void bitstream_insert(B stream, unsigned char sequence, unsigned int bitlength) 
 				stream->stream[i] = 0;
 			}
 		}
+		
 		stream->stream[stream->position] |= second_byte;
 #endif
 	}
 	stream->offset = (stream->offset + bitlength) % 8;
 
 #ifdef DEBUG
-	printf("After inserting %p, offset %u, position %u, length %u\n",
+	printf("After inserting %#x, offset %u, position %u, length %u\n\n",
 			sequence, stream->offset, stream->position, stream->length);
 #endif
 }
@@ -147,7 +156,15 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 #ifdef FIXED_SIZE
 	assert(stream->position < stream->length);
 #endif
+#ifdef DEBUG
+	printf("Before inserting %#x, offset %u, position %u, length %u, bitlength %u\n",
+			sequence, stream->offset, stream->position, stream->length, bitlength);
+#endif
+
+
+
 	sequence = to_big_endian(sequence);
+	sequence >>= 8 -(int) bitlength;
 
 	unsigned char first_byte = ((sequence & bit_masks[bitlength]) << stream->offset) & ~bit_masks[stream->offset];
 	unsigned char second_byte = 0;
@@ -155,7 +172,8 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 
 	if(stream->offset + bitlength >= 8) {
 
-		second_byte =  (sequence >> (stream->offset + bitlength - 8)) & bit_masks[(stream->offset + bitlength - 8)];
+		second_byte =  (sequence << (8 - (int)stream->offset)) & bit_masks[(stream->offset + bitlength - 8)];
+		//second_byte =  (sequence >> (stream->offset + bitlength - 8)) & bit_masks[(stream->offset + bitlength - 8)];
 
 
 		stream->position++;
@@ -178,8 +196,8 @@ void bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned int 
 	stream->offset = (stream->offset + bitlength) % 8;
 
 #ifdef DEBUG
-	printf("After inserting %p, offset %u, position %u, length %u\n",
-			sequence, stream->offset, stream->position, stream->length);
+	printf("After inserting %#x, offset %u, position %u, length %u, bitlength %u\n\n",
+			sequence, stream->offset, stream->position, stream->length, bitlength);
 #endif
 }
 
@@ -202,6 +220,16 @@ void bitstream_get_stream(B bitstream, unsigned char *stream, unsigned int lengt
 	for(i = 0; i < max_length; i++) {
 		stream[i] = bitstream->stream[i];
 	}
+}
+
+void print_char(unsigned char val) {
+	int j;
+		for(j = 0; j < 8; ++j) {
+			if(1 & (val >> j))
+				printf("1");
+			else printf("0");
+		}
+		printf("\n");
 }
 
 

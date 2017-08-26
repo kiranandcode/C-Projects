@@ -5,7 +5,7 @@
 #ifdef BITSTREAM_INCREMENT 
 #define STREAM_INCREMENT_SIZE BITSTREAM_INCREMENT 
 #else
-#define STREAM_INCREMENT_SIZE 10
+#define STREAM_INCREMENT_SIZE 1
 #endif
 
 #define B bitstream_B 
@@ -25,6 +25,7 @@ void      bitstream_big_endian_insert(B stream, unsigned char sequence, unsigned
 void      bitstream_trim(B bitstream);
 void      bitstream_get_stream(B bitstream, unsigned char *stream, unsigned int length);
 // -------------------------------------------------------------
+void      print_char(unsigned char val);
 void      bitstream_print(B stream);
 
 #undef B
