@@ -75,6 +75,7 @@ char *stringn(str, len) char *str; int len;{
 					return p->str;
 			} while(*s1++ == *s2++);
 		}
+	// if we reach this point, the string was not found in the table
 	// install the string
 	{
 		// strings are stored in chunks of perm memory
