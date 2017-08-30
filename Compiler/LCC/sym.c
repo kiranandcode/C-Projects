@@ -1,6 +1,7 @@
 #include "sym.h"
 #include "alloc.h"
 #include "string.h"
+#include "types.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +20,10 @@ struct symbol {
 	int sclass; // storage class
 	//             one of AUTO, REGISTER, STATIC, EXTERN, TY..
 	// symbol flags (50)
+	unsigned temporary:1;
+	unsigned generated:1;
+	unsigned defined:1;
+
 	Type type;
 	float ref;
 	union {
@@ -237,6 +242,7 @@ Symbol constant(ty, v) Type ty; Value v; {
 				case POINTER:
 					if(equalp(p)) return &p->sym; break;
 			}
+	// if the constant is not found, create it
 	NEWO(p,PERM);
 	p->sym.name = vtoa(ty,v);
 	p->sym.scope = CONSTANTS;
@@ -248,6 +254,7 @@ Symbol constant(ty, v) Type ty; Value v; {
 	constants->all = &p->sym;
 
 	// announce the constant
+	// for debug purposes
 	if(ty->u.sym && !ty->u.sym->addressed)
 		(*IR->defsymbol)(&p->sym);
 	
@@ -255,3 +262,42 @@ Symbol constant(ty, v) Type ty; Value v; {
 	p->sym.defined = 1;
 	return &p->sym;
 }
+
+
+Symbol intconst(n) int n; {
+	Value v;
+	v.i = n;
+	return constant(inttype, v);
+}
+
+Symbol genident(scls, ty, lev) int scls,lev; Type ty; {
+	Symbol p;
+
+	NEWO(p, lev >= LOCAL ? FUNC : PERM);
+
+	p->name = stringd(genlabel(1));
+	p->scope = lev;
+	p->sclass = scls;
+	p->type = ty;
+	p->generated = 1;
+	if(lev == GLOBAL)
+		(*IR->defsymbol)(p);
+	return p;
+}
+
+Symbol temporary(scls, ty, lev) Type ty; int scls, lev; {
+	Symbol p = genident(scls, ty, lev);
+
+	p->temporary = 1;
+	return p;
+}
+
+Symbol newtemp(sclass, tc) int sclass, tc; {
+	Symbol p = temporary(sclass, btot(tc), LOCAL);
+
+	(*IR->local)(p);
+	p->defined = 1;
+	return p;
+}
+
+

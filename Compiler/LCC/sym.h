@@ -51,4 +51,7 @@ int genlabel(int);
 Symbol findlabel(int);
 Symbol constant(Type, Value);
 Symbol intconst(int);
+Symbol genident(int, int, Type);
+Symbol temporary(Type, int, int);
+Symbol newtemp(int, int);
 #endif //SYM_H
