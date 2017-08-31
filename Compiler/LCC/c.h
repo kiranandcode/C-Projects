@@ -1,6 +1,9 @@
 #ifndef C_H
 #define C_H
 
+#include "sym.h"
+#include "types.h"
+#include "alloc.h"
 //exported macros
 
 // old compilers (pre-ANSI) do not want parameters in predeclarations
@@ -32,11 +35,48 @@
 #define roundup(x,n) (((x)+((n)-1))&(~((n)-1)))
 
 //typedefs
+typedef struct node *Node;
 
 // interfaces
 
 // exported types
+struct node {
+	short op;
+	short count;
+	Symbol syms[3];
+	Node kids[2]; // <- operands nodes
+	Node link;
+	Xnode x;
+};
 
+enum {
+	F=FLOAT,
+	D=DOUBLE,
+	C=CHAR,
+	S=SHORT,
+	I=INT,
+	U=UNSIGNED,
+	P=POINTER,
+	V=VOID,
+	B=STRUCT
+};
+
+enum {
+	CNST=1<<4,
+	CNSTC=CNST+C,
+	CNSTD=CNST+D,
+	CNSTF=CNST+F,
+	CNSTI=CNST+I,
+	CNSTP=CNST+P,
+	CNSTS=CNST+S,
+	CNSTU=CNST+U,
+	ARG=2<<4,
+	ARGB=ARG+B,
+	ARGD=ARG+D,
+	ARGF=ARG+F,
+	ARGI=ARG+I,
+	ARGP=ARG+P
+};
 
 // expreted functions
 
