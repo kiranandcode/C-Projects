@@ -34,6 +34,8 @@
 		fieldsize(p) - fieldright(p))
 #define fieldmask(p)  (~(~(unsigned)0 << fieldsize(p)))
 
+#define widen(t) (isint(t) || isenum(t) ? INT : ttob(t))
+
 typedef struct type *Type;
 struct type {
 	int op;

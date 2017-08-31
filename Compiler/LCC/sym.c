@@ -38,9 +38,10 @@ struct symbol {
 		// types
 		
 		// enum constants
-		
+		int value;	
 
 		// enum types
+		Symbol *idlist;
 		struct {
 			unsigned cfields:1;
 			unsigned vfields:1;

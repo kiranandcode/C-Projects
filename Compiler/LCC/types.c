@@ -237,3 +237,134 @@ Field newfield(name, ty, fty) char *name; Type ty, fty; {
 	p->type = fty;
 	return p;
 }
+
+int eqtype(ty1, ty2, ret) Type ty1, ty2; int ret; {
+	if(ty == t2) return 1;
+	if(tyq->op != ty2->op)
+		return 0;
+	switch(ty1->op){
+		case CHAR: case SHORT: case UNSIGNED: case INT:
+		case ENUM: case UNION: case STRUCT: case DOUBLE:
+			return 0;
+		case POINTER:
+			// check for pointer types
+			return eqtype(ty1->type, ty2->type, 1);
+		case VOLATILE: case CONST+VOLATILE:
+		case CONST:
+			// check for compatible qualified types
+			return eqtype(ty1->type, ty2->type, 1);
+		case ARRAY:
+			// check for array types
+			if(eqtype(ty1->type, ty2->type, 1)){
+				if(ty1->size == ty2->size)
+					return 1;
+				if(ty1->size == 0 || ty2->size ==0)
+					return ret;
+			}
+			return 0;
+		case FUNCTION:
+			// check for compatible function types
+			if(eqtype(ty1->type, ty2->type,1)){
+				Type *p1 = ty1->u.f.proto, *p2 = ty2->u.f.proto;
+				if(p1 == p2)
+					return 1;
+				if(p1 && p2) {
+					for(; *p1 && *p2; p1++, p2++)
+						if(eqtype(unqual(*p1), unqual(*p2), 1) == 0)
+							return 0;
+					if(*p1 == NULL && *p2 == NULL)
+						return 1;
+
+				} else {
+			if(variadic(p1 ? ty1 :ty2))
+				return 0;
+			if(p1 == NULL)
+				p1 = p2;
+			for(; *p1; p1++) {
+				Type ty = unqual(*p1);
+				if(promote(ty) != ty || ty == floattype)
+					return 0;
+				}
+			return 1;
+			}
+	}
+}
+
+
+Type promote(ty) Type ty; {
+	ty = unqual(ty);
+	if(isunsigned(ty) || ty == longtype)
+		return ty;
+	else if(isint(ty) || isenum(ty))
+		return inttype;
+	return ty;
+}
+
+Type compose(ty1, ty2) Type ty1, ty2; {
+	if(ty1 == ty2)
+		return ty1;
+	switch(ty1->op) {
+		case POINTER:
+			return ptr(compose(ty1->type, ty2->type));
+		case CONST+VOLATILE:
+			return qual(CONST, qual(VOLATILE,
+				compose(ty1->type, ty2->type)));
+		case CONST: case VOLATILE:
+			return qual(ty1->op, compose(ty1->type, ty2->type));
+		case ARRAY: {
+		// compose two array types
+	Type ty = compose(ty1->type, ty2->type);
+	if(ty1->size && ty1->type->size && ty2->size == 0)
+		return array(ty, ty1->size/ty1->type->size, ty1->align);
+	if(ty2->size && ty2->type->size && ty1->size == 0)
+		return array(ty, ty2->size/ty2->type->size, ty2->align);
+	return array(ty, 0, 0);
+			    }
+		case FUNCTION: {
+		// compose two function types
+	Type *p1 = ty1->u.f.proto, *p2 = ty2->u.f.proto;
+	Type ty = compose(ty1->type, ty2->type);
+	List tlist = NULL;
+	if(p1 == NULL && p2 == NULL)
+		return func(ty, NULL, 1);
+	if(p1 && p2 == NULL)
+		return func(ty, p1, ty1->u.f.oldstyle);
+	if(p2 && p1 == NULL)
+		return func(ty, p2, ty2->u.f.oldstyle);
+	for(; *p1 && *p2; p1++, p2++) {
+		Type ty = compose(unqual(*p1), unqual(*p2));
+		if(isconst(*p1) || isconst(*p2))
+			ty = qual(CONST, ty);
+		if(isvolatile(*p1) || isvolatile(*p2))
+			ty = qual(VOLATILE, ty);
+		tlist = append(ty, tlist);
+			       }
+	return func(ty,ltov(&tlist, PERM), 0);
+			       }
+	}
+}
+
+
+int ttob(ty) Type ty; {
+	switch(ty->op) {
+	case CONST: case VOLATILE: case CONST+VOLATILE:
+		return ttob(ty->type);
+	case CHAR: case INT: case SHORT: case UNSIGNED:
+	case VOID: case FLOAT: case DOUBLE: return ty->op;
+	case POINTER: case FUNCTION: return POINTER;
+	case ARRAY: case STRUCT: case UNION: return STRUCT;
+	case ENUM: return INT;
+	}
+}
+
+Type btot(op) int op; {
+	switch(optype(op)) {
+	case F: return floattype;
+	case D: return doubletype;
+	case C: return chartype;
+	case S: return shorttype;
+	case I: return inttype;
+	case U: return unsignedtype;
+	case P: return voidptype;
+	}
+}
