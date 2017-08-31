@@ -28,6 +28,12 @@
 		|| unqual(t)->op == ENUM)
 #define isenum(t) (unqual(t)->op == ENUM)
 
+#define fieldsize(p) (p)->bitsize
+#define fieldright(p) ((p)->lsb - 1)
+#define fieldleft(p)  (8*(p)->type->size - \
+		fieldsize(p) - fieldright(p))
+#define fieldmask(p)  (~(~(unsigned)0 << fieldsize(p)))
+
 typedef struct type *Type;
 struct type {
 	int op;
@@ -39,9 +45,24 @@ struct type {
 		
 		Symbol sym;
 		// function types
+		struct {
+			unsigned oldstyle:1;
+			Type *proto; // null terminated array of types
+		} f;
 	} u;
 	Xtype x;
 };
+typedef struct field *Field;
+struct field {
+	char *name;
+	Type type;
+	int offset;
+	short bitsize;
+	short lsb;
+	Field link;
+};
+
+
 
 extern Type chartype;
 extern Type doubletype;

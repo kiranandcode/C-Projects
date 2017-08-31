@@ -24,7 +24,6 @@ typedef union value {
 	double d;
 	void *p;
 } Value;
-
 enum {CONSTANTS=1, LABELS, GLOBAL, PARAM, LOCAL };
 
 // exported data

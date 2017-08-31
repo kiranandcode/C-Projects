@@ -41,6 +41,11 @@ struct symbol {
 		
 
 		// enum types
+		struct {
+			unsigned cfields:1;
+			unsigned vfields:1;
+			Field flist;
+		} s;
 		
 		// constants
 		struct {
