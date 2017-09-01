@@ -4,8 +4,31 @@
 #define f(x) ((x-7 == 0) || (x+3 == 0) ? 100000000 : (100/((x-20)*(x+3))))
 
 double fitness(bitstring_B stream) {
-	uint16_t i = bitstring_int(stream);
-	return f(((double)i));
+// define fitness by a mathematical function
+//	uint16_t i = bitstring_int(stream);
+//      return f(((double)i));
+//
+// define fitness by proximity to a bitstring
+unsigned int score = 0;
+// search for string 0*1*****001*0101
+(!bitstring_bittest(stream, 0)) ? score++ : score;
+//(bitstring_bittest(stream, 1)) ? score++ : score;
+(bitstring_bittest(stream, 2)) ? score++ : score;
+//(bitstring_bittest(stream, 3)) ? score++ : score;
+//(bitstring_bittest(stream, 4)) ? score++ : score;
+//(bitstring_bittest(stream, 5)) ? score++ : score;
+//(bitstring_bittest(stream, 6)) ? score++ : score;
+//(bitstring_bittest(stream, 7)) ? score++ : score;
+(!bitstring_bittest(stream, 8)) ? score++ : score;
+(!bitstring_bittest(stream, 9)) ? score++ : score;
+(bitstring_bittest(stream, 10)) ? score++ : score;
+//(bitstring_bittest(stream, 11)) ? score++ : score;
+(!bitstring_bittest(stream, 12)) ? score++ : score;
+(bitstring_bittest(stream, 13)) ? score++ : score;
+(!bitstring_bittest(stream, 14)) ? score++ : score;
+(bitstring_bittest(stream, 15)) ? score++ : score;
+
+return score;
 }
 
 int main() {
@@ -19,7 +42,7 @@ int main() {
 	}
 	
 	int k;
-	for(k = 0; k < 2000; k++) {
+	for(k = 0; k < 20000; k++) {
 		population_fitness[0] = fitness(population[0]);	
 		double best_seen = 0;
 		uint16_t best_seen_value = 0;
