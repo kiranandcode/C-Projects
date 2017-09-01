@@ -1,8 +1,10 @@
 #include "bitstring.h"
+#include "random.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 
 #define B bitstring_B
 
@@ -29,6 +31,7 @@ static unsigned char bit_masks[] = {
 	/* 0111 1111 */ 0x7F, /* 1111 1111 */ 0xFF
 };
 
+static int seed = -1;
 
 static unsigned char and(unsigned char a, unsigned char b) {
 	return a & b;
@@ -68,6 +71,12 @@ B bitstring_new(unsigned int bitlength) {
 	return result;
 }
 
+void bitstring_delete(B string) {
+	assert(string);
+	free(string->stream);
+	free(string);
+}
+
 B bitstring_copy(B string) {
 	B copy = bitstring_new(bitstring_get_bitlength(string));
 	unsigned int i;
@@ -78,6 +87,20 @@ B bitstring_copy(B string) {
 	return copy;
 }
 
+
+B bitstring_random(unsigned int bitlength) {
+	B result = bitstring_new(bitlength);
+
+	unsigned int i = 0;
+	for(i = 0; i < result->length; ++i){
+		if(i != result->length-1)
+			result->stream[i] = random_random();
+		else
+			result->stream[i] = (unsigned char)(((unsigned int)random_random())%256) & bit_masks[result->bits];
+	}
+
+	return result;
+}
 
 
 void bitstring_set(B string,unsigned char sequence, unsigned int startbit, unsigned int sequence_length) {
@@ -96,12 +119,36 @@ string->stream[first_byte_index+1] |= ((sequence >> (8 - first_byte_offset))) & 
 	}
 }
 
+void bitstring_bitset(B string, unsigned int bitposition) {
+	assert(bitposition < bitstring_get_bitlength(string));
+	unsigned int byte_index = bitposition/8;
+	unsigned int byte_offset = bitposition %8;
+	string->stream[byte_index] |= 1<<byte_offset;
+}
+
+void bitstring_bitclear(B string, unsigned int bitposition){
+	assert(bitposition < bitstring_get_bitlength(string));
+	unsigned int byte_index = bitposition/8;
+	unsigned int byte_offset = bitposition %8;
+	string->stream[byte_index] ^= 1<<byte_offset;
+}
+
+int bitstring_bittest(B string, unsigned int bitposition) {
+	assert(bitposition < bitstring_get_bitlength(string));
+	unsigned int byte_index = bitposition/8;
+	unsigned int byte_offset = bitposition %8;
+	if(string->stream[byte_index] & individual_bit_masks[byte_offset])
+		return 1;
+	else 
+		return 0;
+}
+
 B bitstring_map(B stringA, B stringB,
 	unsigned char (*function) (unsigned char , unsigned char )) {
 
 	assert(bitstring_get_bitlength(stringA) == bitstring_get_bitlength(stringB));
 	B result = bitstring_new(bitstring_get_bitlength(stringA));
-	int i;
+		int i;
 	for(i = 0; (unsigned int)i < stringA->length; i++) {
 		unsigned char value = 0;
 		value = function(stringA->stream[i], stringB->stream[i]);
@@ -147,6 +194,20 @@ B bitstring_crossover(B stringA, B stringB, unsigned int pivot){
 
 	}
 	return result;
+}
+
+uint16_t bitstring_int(B string) {
+
+	assert(string);
+	uint16_t value = 0;
+	
+	unsigned int i;
+	for(i = 0; i < string->length; i++) {
+		value |= string->stream[i] << 8*i;
+	}
+
+	return value;
+
 }
 
 
