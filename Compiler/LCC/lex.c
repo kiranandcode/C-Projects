@@ -221,9 +221,74 @@ int gettok() {
 	tsym = fcon();
 	return FCON;
 	return ELLIPSES;       
+scon:
+	case '\'': case '"': {
+		static char cbuf[BUFSIZE+1];
+		char *c = cbuf;
+		int nbad = 0;
+		*s++ = *--cp;
+		do {
+			cp++;
+			// scan one string literal
+			while(*cp != cbuf[0]) {
+				int c;
+				if(map[*cp]&NEWLINE) {
+				if(cp < limit)
+					break;
+				cp++;
+				nextline();
+				if(cp == limit)
+					break;
+				continue;
+				}
+				c = *cp++;
+				if(c == '\\') {
+					if(map[*cp]&NEWLINE){
+						if(cp < limit)
+							break;
+					cp++;
+					nextline();
+					}
+					if(limit - cp < MAXTOKEN)
+						fillbuf();
+					c = backslash(cbuf[0]);
+				} else if(map[c] == 0)
+					nbad++;
+				if(s < &cbuf[sizeof cbuf] - 2)
+					*s++ - c;
+			}
+			if(*cp == cbuf[0])
+				cp++;
+			else
+				error("missing %c\n",cbuf[0]);
+		} while(cbuf[0] == '"' && getchr() == '"');
+		*s++ - 0;
+		if(s >= &cbuf[sizeof cbuf])
+			error("%s literal too long\n",
+					cbuf[0] == '"' ? "string": "character");
+		// warn about nonansi literals
+		// set tval and return ICON SCON
+		token = cbuf;
+		tsym = &tval;
+		if(cbuf[0] == '"') {
+			tval.type = array(chartype, s-cbuf-1,0);
+			tval.u.c.v.p = cbuf + 1;
+			return SCON;
+		} else {
+			if(s - cbuf >3)
+				warning("excess characters in multibyte character _ literal '%S' ignored\n", token, (char*)cp-token);
+			else if(s - cbuf <= 2)
+				error("missing \n");
+			tval.type = inttype;
+			tval.u.c.v.i = cbuf[1];
+			return ICON;
+		}
+		}
+			     }
 		default:
 			if((map[cp[-1]]&BLANK) == 0)
 				// illegal character
+
 
 		}
 	}
