@@ -21,9 +21,10 @@ static unsigned char map[256] = {
 	// map initializer
 };
 
+// deals with preprocessing number
 static void ppnumber(which) char *which; {
 	unsigned char *rcp = cp--;
-	for(; (map[*cp]*(DIGIT|LETTER)) || *cp == '.'; cp++)
+	for(; (map[*cp]&(DIGIT|LETTER)) || *cp == '.'; cp++)
 		if((cp[0] == 'E'||cp[0] == 'e')
 		&& (cp[1] == '-' || cp[1] == '+'))
 			cp++;
@@ -115,15 +116,20 @@ int gettok() {
 		// skip whitespace
 		while(map[*rcp]&BLANK)
 			rcp++;
+		// if less than maxtoken elements, fill buffer again
 		if(limit - rcp < MAXTOKEN) {
+			// move cp to rcp
 			cp = rcp;
+			// fill buf
 			fillbuf();
 			rcp = cp;
 		}
 		src.file = file;
 		src.x = (char *)rcp - line;
 		src.y = lineno;
+		// move cp to the next char past rcp
 		cp = rcp + 1;
+		// rcp will equal cp, switch value is cp-1
 		switch(*rcp++){
 	// gettok cases
 		case '\n': case '\v': case'\r': case'\f':
@@ -134,11 +140,13 @@ int gettok() {
 			}
 			continue;
 		case 'i':
+			// if
 			if(rcp[0] == 'f'
 			&& !(map[rcp[1]]&(DIGIT|LETTER))){
 			cp = rcp+1;
 			return IF;
 			}
+			//int
 			if(rcp[0] == 'n'
 			&& rcp[1] == 't'
 			&& !(map[rcp[2]]&(DIGIT|LETTER))){
@@ -146,6 +154,7 @@ int gettok() {
 				tsym =  inttype->u.sym;
 				return INT;
 			}
+			// otherwise identiifier
 			goto id;
 		case 'h': case 'j': case 'k': case 'm': case 'n':
 		case 'o': case 'p': case 'q': case 'x': case 'y':
@@ -162,9 +171,12 @@ int gettok() {
 				fillbuf();
 				rcp = ++cp;
 			}
+			// rcp is 1 more than switch value
 			token = (char *)rcp-1;
+			// while identifier move forward
 			while(map[*rcp]&(DIGIT|LETTER))
 				rcp++;
+			// convert to permanent string
 			token = stringn(token, (char *)rcp-token);
 			//tsym <- type named by token
 			tsym = lookup(token, identifiers);
@@ -187,7 +199,11 @@ int gettok() {
 	} else {
 		//decimalconstant
 		int overflow = 0;
+		// while is a digit
 		for(n = *token - '0'; map[*rcp]&DIGIT;) {
+			// if n > 
+			int d = *rcp++ - '0';
+			// if adding it results in a overflow
 			if(n > ((unsigned)UINT_MAX - d)/10)
 				overflow = 1;
 			else
@@ -206,7 +222,8 @@ int gettok() {
 								 }
 	case '.':
 	if(rcp[0] == '.' && rcp[1] == '.') {
-       cp += 2;
+	       cp += 2;
+	       return ELLIPSES;
 	}
 	if((map[*rcp]&DIGIT) == 0)
 		return '.';
