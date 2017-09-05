@@ -9,6 +9,19 @@ struct pattern_B {
 	bitstring_B string;
 	bitstring_B mask;
 };
+
+struct classifier_element_B {
+	pattern_B pattern;
+	bitstring_B result;
+};
+
+struct classifier_B {
+	unsigned int classifiers;
+	unsigned int input_bitstring_size;
+	unsigned int output_bitstring_size;
+	struct classifier_element_B *elements;
+};
+
 // input : 10111111111111
 // result: 1####1####0###
 //         ----------e---
