@@ -87,6 +87,22 @@ B bitstring_copy(B string) {
 	return copy;
 }
 
+int bitstring_eq(B stringA, B stringB) {
+    if(bitstring_get_bitlength(stringA) != bitstring_get_bitlength(stringB))
+	    return 0;
+    unsigned int i;
+    for(i = 0; i < stringA->length; ++i) {
+	if(i != stringA->length - 1) {
+		if(stringA->stream[i] != stringB->stream[i])
+			return 0;
+	} else {
+		if((stringA->stream[i]&bit_masks[stringA->bits]) != (stringB->stream[i]&bit_masks[stringA->bits]))
+			return 0;
+	}
+    }
+    return 1;
+}
+
 
 B bitstring_random(unsigned int bitlength) {
 	B result = bitstring_new(bitlength);

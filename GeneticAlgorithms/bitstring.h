@@ -14,6 +14,7 @@ typedef struct B *B;
 B bitstring_new(unsigned int bitlength);
 void bitstring_delete(B string);
 B bitstring_copy(B string);
+int bitstring_eq(B stringA, B stringB);
 B bitstring_random(unsigned int bitlength);
 void bitstring_set(B string, unsigned char sequence, unsigned int startbit, unsigned int sequence_length);
 void bitstring_bitset(B string, unsigned int bitposition);
