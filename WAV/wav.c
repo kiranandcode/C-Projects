@@ -92,6 +92,33 @@ void wav_insert_subchunk_descriptor(bitstream_B stream,
 	
 	bitstream_insert(stream, ((uint16_t)(bitspersample)) & 0xFF, 8);
 	bitstream_insert(stream, ((uint16_t)(bitspersample)>> 8) & 0xFF, 8);
+	return;
+}
 
+
+void wav_insert_data_byte(bitstream_B stream,
+		uint32_t subchunk_bytes,
+		unsigned char *data) {
+
+	// subchunk2id big 4 bytes 
+	bitstream_big_endian_insert(stream, 'd', 8);
+	bitstream_big_endian_insert(stream, 'a', 8);
+	bitstream_big_endian_insert(stream, 't', 8);
+	bitstream_big_endian_insert(stream, 'a', 8);
+
+
+	// subchunk 2 size little 4 bytes
+	// subchunk2size = numsamples * numchannels * bitspersample/8
+
+	bitstream_insert(stream, ((uint32_t)(subchunk_bytes)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(subchunk_bytes)>> 8) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(subchunk_bytes)>> 16) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(subchunk_bytes)>> 24) & 0xFF, 8);
+
+
+	uint32_t i = 0;
+	for(i = 0; i < subchunk_bytes; i++) {
+	bitstream_insert(stream, data[i], 8);
+	}
 	return;
 }
