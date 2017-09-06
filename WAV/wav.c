@@ -38,3 +38,60 @@ void wav_insert_descriptor(bitstream_B stream, uint32_t chunk_size) {
 	return;
 }
 
+
+void wav_insert_subchunk_descriptor(bitstream_B stream,
+		uint16_t numchannels,
+		uint32_t samplerate,
+		uint16_t bitspersample
+		) {
+
+	// insert subchunk1id big 4 bytes
+	bitstream_big_endian_insert(stream, 'f',8);
+	bitstream_big_endian_insert(stream, 'm',8);
+	bitstream_big_endian_insert(stream, 't',8);
+	bitstream_big_endian_insert(stream, ' ',8);
+	// insert subchunk1size little 4 bytes
+
+	// 16 for pcm
+	bitstream_insert(stream, ((uint32_t)(16)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(16)>> 8) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(16)>> 16) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(16)>> 24) & 0xFF, 8);
+	
+	// insert audioformat  little 2 bytes
+	// 1 for pcm, other than 1 means compression
+	bitstream_insert(stream, ((uint16_t)(1)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint16_t)(1)>> 8) & 0xFF, 8);
+
+	// insert numchannels  little 2 bytes
+	bitstream_insert(stream, ((uint16_t)(numchannels)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint16_t)(numchannels)>> 8) & 0xFF, 8);
+	// insert samplerate little 4 bytes
+	bitstream_insert(stream, ((uint32_t)(samplerate)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(samplerate)>> 8) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(samplerate)>> 16) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(samplerate)>> 24) & 0xFF, 8);
+	// insert byterate little 4 bytes
+	// byterate = samplerate * numchannels * bitspersample/8
+	uint32_t byterate =
+		samplerate * numchannels * bitspersample/8;
+	bitstream_insert(stream, ((uint32_t)(byterate)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(byterate)>> 8) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(byterate)>> 16) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(byterate)>> 24) & 0xFF, 8);
+	// insert blockalign little 4 bytes
+	// blockalign = numchannels * bitspersample/8
+	uint32_t blockalign =
+		numchannels * bitspersample/8;
+
+	bitstream_insert(stream, ((uint32_t)(blockalign)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(blockalign)>> 8) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(blockalign)>> 16) & 0xFF, 8);
+	bitstream_insert(stream, ((uint32_t)(blockalign)>> 24) & 0xFF, 8);
+	// insert bitspersample 2 bytes
+	
+	bitstream_insert(stream, ((uint16_t)(bitspersample)) & 0xFF, 8);
+	bitstream_insert(stream, ((uint16_t)(bitspersample)>> 8) & 0xFF, 8);
+
+	return;
+}
