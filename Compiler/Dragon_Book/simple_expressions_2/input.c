@@ -56,6 +56,7 @@ char *filebuffer_nextline(F buffer) {
 	assert(buffer);
 	
 	do {
+	        //printf("cp pos %lu, limit pos %lu, lineno %d\n", buffer->cp - buffer->buffer,buffer->limit - buffer->buffer, buffer->lineno);
 		// reached end copy over
 		if(buffer->cp >= buffer->limit) {
 			filebuffer_fillbuf(buffer);
@@ -65,7 +66,7 @@ char *filebuffer_nextline(F buffer) {
 		else 
 			buffer->lineno++;
 		// skip whitespace	
-		for(buffer->line = (char *)buffer->cp; *buffer->cp==' ' || *buffer->cp == '\t'; buffer->cp++)
+		for(buffer->line = (char *)buffer->cp; *buffer->cp == ' ' || *buffer->cp == '\t' || *buffer->cp == '\n'; buffer->cp++)
 			;
 	} while(*buffer->cp == '\n' || buffer->cp == buffer->limit);
 	return buffer->cp;
@@ -74,6 +75,8 @@ char *filebuffer_nextline(F buffer) {
 char *filebuffer_fillbuf(F buffer) {
 	assert(filebuffer_size(buffer) < PREBUFSIZE);
 
+	//printf("filling buffer\n");
+	//printf("cp pos %lu, limit pos %lu, lineno %d\n", buffer->cp - buffer->buffer,buffer->limit - buffer->buffer, buffer->lineno);
 	if(buffer->cp >= buffer->limit)
 		buffer->cp = &buffer->buffer[PREBUFSIZE + 1];
 	else {
@@ -94,15 +97,25 @@ char *filebuffer_fillbuf(F buffer) {
 
 	}
 
-	size_t read = fread(buffer->cp, sizeof(char), BUFSIZE, buffer->fp);
+	size_t read = fread(&buffer->buffer[PREBUFSIZE + 1], sizeof(char), BUFSIZE, buffer->fp);
+
+	//printf("cp pos %lu, limit pos %lu, lineno %d\n", buffer->cp - buffer->buffer,buffer->limit - buffer->buffer, buffer->lineno);
 	buffer->limit = &buffer->buffer[PREBUFSIZE + 1 + read];
+
+	//printf("cp pos %lu, limit pos %lu, lineno %d\n", buffer->cp - buffer->buffer,buffer->limit - buffer->buffer, buffer->lineno);
 	*buffer->limit = '\n';
 
 	return buffer->cp;
 }
 
+char *filebuffer_incrementcp(F buffer) {
+	if(buffer->cp < buffer->limit)
+		buffer->cp++;
+	return buffer->cp;
+}
+
 size_t filebuffer_size(F buffer) {
-	return buffer->limit - buffer->cp;
+	return buffer->cp >= buffer->limit ? 0 : buffer->limit - buffer->cp;
 }
 
 char *filebuffer_cp(F buffer) {

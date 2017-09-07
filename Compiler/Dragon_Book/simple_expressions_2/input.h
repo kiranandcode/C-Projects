@@ -3,6 +3,11 @@
 
 #include <stdio.h>
 
+
+#define PREBUFSIZE 100
+#define BUFSIZE 100
+
+
 #ifndef PREBUFSIZE
 #define PREBUFSIZE 512
 #endif
@@ -19,6 +24,7 @@ void filebuffer_delete(F buffer);
 char *filebuffer_nextline(F buffer);
 char *filebuffer_fillbuf(F buffer);
 char *filebuffer_fillbuf(F buffer);
+char *filebuffer_incrementcp(F buffer);
 size_t filebuffer_size(F buffer);
 char *filebuffer_cp(F buffer);
 char *filebuffer_limit(F buffer);
