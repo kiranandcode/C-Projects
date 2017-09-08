@@ -122,3 +122,16 @@ void wav_insert_data_byte(bitstream_B stream,
 	}
 	return;
 }
+
+
+bitstream_B wav_generate(uint8_t *bytes, uint32_t count) {
+
+	bitstream_B result = bitstream_new(10);
+	wav_insert_descriptor(result, 4 + (8 + 16) + (8 + count));
+
+	wav_insert_subchunk_descriptor(result, 1, 44100, 8);
+
+	wav_insert_data_byte(result,count,bytes);
+
+	return result;
+}
