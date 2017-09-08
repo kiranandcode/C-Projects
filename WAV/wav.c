@@ -135,3 +135,12 @@ bitstream_B wav_generate(uint8_t *bytes, uint32_t count) {
 
 	return result;
 }
+
+
+void wav_create(uint8_t *bytes, uint32_t count, FILE *fp) {
+	bitstream_B value = 
+	wav_generate(bytes, count);
+	bitstream_serialize(value, fp);
+	bitstream_delete(value);
+	return;
+}

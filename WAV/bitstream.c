@@ -247,3 +247,12 @@ void bitstream_print(B stream) {
 //			printf(",");
 	}
 }
+
+
+
+void      bitstream_serialize(B stream, FILE *fp) {
+	fwrite(stream->stream,
+		1,
+		stream->length,
+		fp);	
+}

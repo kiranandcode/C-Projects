@@ -1,6 +1,8 @@
 #ifndef BITSTREAM_H
 #define BITSTREAM_H
 
+#include <stdio.h>
+
 // #define FIXED_SIZE
 #ifdef BITSTREAM_INCREMENT 
 #define STREAM_INCREMENT_SIZE BITSTREAM_INCREMENT 
@@ -27,6 +29,7 @@ void      bitstream_get_stream(B bitstream, unsigned char *stream, unsigned int 
 // -------------------------------------------------------------
 void      print_char(unsigned char val);
 void      bitstream_print(B stream);
+void      bitstream_serialize(B stream, FILE *fp);
 
 #undef B
 #endif
