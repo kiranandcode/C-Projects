@@ -9,7 +9,7 @@ int main() {
 	fp = fopen("test.txt", "r");
 
 	if(fp != NULL ){
-		filebuffer_F buffer = filebuffer_new(fp);
+		filebuffer_F buffer = filebuffer_new(stdin);
 
 		do {
 			printf("[%d]: ", filebuffer_lineno(buffer));

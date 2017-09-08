@@ -114,6 +114,12 @@ char *filebuffer_incrementcp(F buffer) {
 	return buffer->cp;
 }
 
+void filebuffer_setcp(F buffer, char *cp){ 
+	assert(cp >= buffer->buffer &&
+	       cp <= buffer->limit);
+	buffer->cp = cp;
+}
+
 size_t filebuffer_size(F buffer) {
 	return buffer->cp >= buffer->limit ? 0 : buffer->limit - buffer->cp;
 }

@@ -25,6 +25,7 @@ char *filebuffer_nextline(F buffer);
 char *filebuffer_fillbuf(F buffer);
 char *filebuffer_fillbuf(F buffer);
 char *filebuffer_incrementcp(F buffer);
+void filebuffer_setcp(F buffer, char *cp);
 size_t filebuffer_size(F buffer);
 char *filebuffer_cp(F buffer);
 char *filebuffer_limit(F buffer);
