@@ -17,10 +17,10 @@ void wav_insert_descriptor(bitstream_B stream, uint32_t chunk_size) {
 	assert(stream);
 
 	// insert chunkid RIFF
-	bitstream_big_endian_insert(stream, 'R',8);
-	bitstream_big_endian_insert(stream, 'I',8);
-	bitstream_big_endian_insert(stream, 'F',8);
-	bitstream_big_endian_insert(stream, 'F',8);
+	bitstream_insert(stream, 'R',8);
+	bitstream_insert(stream, 'I',8);
+	bitstream_insert(stream, 'F',8);
+	bitstream_insert(stream, 'F',8);
 
 
 	// insert littleendian chunck size
@@ -30,10 +30,10 @@ void wav_insert_descriptor(bitstream_B stream, uint32_t chunk_size) {
 	bitstream_insert(stream, (chunk_size>> 24) & 0xFF, 8);
 
 	// insert format wave
-	bitstream_big_endian_insert(stream, 'W', 8);
-	bitstream_big_endian_insert(stream, 'A', 8);
-	bitstream_big_endian_insert(stream, 'V', 8);
-	bitstream_big_endian_insert(stream, 'E', 8);
+	bitstream_insert(stream, 'W', 8);
+	bitstream_insert(stream, 'A', 8);
+	bitstream_insert(stream, 'V', 8);
+	bitstream_insert(stream, 'E', 8);
 
 	return;
 }
@@ -46,10 +46,10 @@ void wav_insert_subchunk_descriptor(bitstream_B stream,
 		) {
 
 	// insert subchunk1id big 4 bytes
-	bitstream_big_endian_insert(stream, 'f',8);
-	bitstream_big_endian_insert(stream, 'm',8);
-	bitstream_big_endian_insert(stream, 't',8);
-	bitstream_big_endian_insert(stream, ' ',8);
+	bitstream_insert(stream, 'f',8);
+	bitstream_insert(stream, 'm',8);
+	bitstream_insert(stream, 't',8);
+	bitstream_insert(stream, ' ',8);
 	// insert subchunk1size little 4 bytes
 
 	// 16 for pcm
@@ -101,10 +101,10 @@ void wav_insert_data_byte(bitstream_B stream,
 		unsigned char *data) {
 
 	// subchunk2id big 4 bytes 
-	bitstream_big_endian_insert(stream, 'd', 8);
-	bitstream_big_endian_insert(stream, 'a', 8);
-	bitstream_big_endian_insert(stream, 't', 8);
-	bitstream_big_endian_insert(stream, 'a', 8);
+	bitstream_insert(stream, 'd', 8);
+	bitstream_insert(stream, 'a', 8);
+	bitstream_insert(stream, 't', 8);
+	bitstream_insert(stream, 'a', 8);
 
 
 	// subchunk 2 size little 4 bytes
