@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <time.h>
 
@@ -146,7 +147,8 @@ void bitstring_bitclear(B string, unsigned int bitposition){
 	assert(bitposition < bitstring_get_bitlength(string));
 	unsigned int byte_index = bitposition/8;
 	unsigned int byte_offset = bitposition %8;
-	string->stream[byte_index] ^= 1<<byte_offset;
+	// if 0 -> 1, if 1 -> 0
+	(string->stream[byte_index] ^= (string->stream[byte_index] & individual_bit_masks[byte_offset]));
 }
 
 int bitstring_bittest(B string, unsigned int bitposition) {
@@ -249,3 +251,21 @@ unsigned int bitstring_get_bitlength(B string) {
 	assert(string);
 	return (string->length - 1) * 8 + string->bits;
 }
+
+bitstring_B bitstring_generate(char *str) {
+	assert(str);
+	bitstring_B string;
+	size_t size = strlen(str);
+	string = bitstring_new(size);
+
+	unsigned int i;
+	for(i = 0; i < size; ++i){
+		if(str[i] == '1') {
+			bitstring_bitset(string,i);
+		} else if(str[i] == '0') {
+			bitstring_bitclear(string, i);
+		}
+	}
+	return string;
+}
+

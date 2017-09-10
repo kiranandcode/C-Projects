@@ -2,8 +2,8 @@
 
 #include <assert.h>
 #include <stdlib.h>
-
-typedef struct pattern_B *pattern_B;
+#include <string.h>
+#include <stdio.h>
 
 struct pattern_B {
 	bitstring_B string;
@@ -37,6 +37,43 @@ struct classifier_B {
 //   mask: 10000100001000 
 //in^st&m: 00000000001000
 
+pattern_B pattern_generate(char *str) {
+	assert(str);
+	pattern_B pattern;
+	pattern = calloc(sizeof(*pattern),1);
+	size_t size = strlen(str);
+	pattern->mask = bitstring_new(size);
+	pattern->string = bitstring_new(size);
+
+	unsigned int i;
+	for(i = 0; i < size; ++i){
+		if(str[i] == '1') {
+			bitstring_bitset(pattern->string,i);
+			bitstring_bitset(pattern->mask, i);
+		} else if(str[i] == '0') {
+			bitstring_bitclear(pattern->string, i);
+			bitstring_bitset(pattern->mask, i);
+		}
+	}
+	return pattern;
+}
+
+void pattern_print(pattern_B pattern) {
+	unsigned int i;
+	unsigned int length = bitstring_get_bitlength(pattern->mask);
+
+	for(i = 0; i < length; ++i) {
+		if(!bitstring_bittest(pattern->mask, i)){
+			printf("#");
+		} else if(bitstring_bittest(pattern->string, i)) {
+			printf("1");
+		} else {
+			printf("0");
+		}
+	}
+
+}
+
 int pattern_matches(pattern_B pattern, bitstring_B string, bitstring_B zeroref) {
 	int delete_zero = 0;
 	assert(bitstring_get_bitlength(pattern->string) 
@@ -44,7 +81,7 @@ int pattern_matches(pattern_B pattern, bitstring_B string, bitstring_B zeroref) 
 	       bitstring_get_bitlength(string) &&
 	(zeroref == NULL || bitstring_get_bitlength(zeroref) 
 	  == 
-	  bitstring_get_bitlength(pattern->string->length)));
+	  bitstring_get_bitlength(pattern->string)));
 
 
 	if(zeroref == NULL) {

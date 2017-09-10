@@ -29,6 +29,7 @@ uint16_t bitstring_int(B string);
 
 void bitstring_print(B string);
 unsigned int bitstring_get_bitlength(B string);
+bitstring_B bitstring_generate(char *str);
 
 #undef B
 #endif
