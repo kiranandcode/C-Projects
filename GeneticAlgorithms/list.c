@@ -236,6 +236,23 @@ void list_append(L list, void *item) {
 	}
 }
 
+int list_contains(L list, void *item, int (*eq)(void *,void *)) {
+	assert(list);
+
+	struct L_iterator iter = list_iterator(list);
+	while(list_iteratorhasnext(&iter)){
+		void *current = list_iteratornext(&iter);
+		if(eq && eq != NULL) {
+			if(eq(item, current))
+				return 1;
+		} else {
+			if(item == current)
+				return 1;
+		}
+	}
+	return 0;
+}
+
 void list_print(L list, void (*print)(void *)) {
 	assert(list);
 

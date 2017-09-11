@@ -1,4 +1,5 @@
 #include "classifier.h"
+#include "list.h"
 #include "random.h"
 
 #include <assert.h>
@@ -14,13 +15,17 @@ struct pattern_B {
 struct classifier_element_B {
 	pattern_B pattern;
 	bitstring_B result;
+	unsigned char on_msg_board;
+	unsigned char output;
+	double strength;
 };
 
 struct classifier_B {
-	unsigned int classifiers;
-	unsigned int input_bitstring_size;
-	unsigned int output_bitstring_size;
-	struct classifier_element_B *elements;
+	unsigned int bitstring_size;
+	bitstring_B zeroref;
+	list_L elements;
+	list_L message_board;
+//	struct classifier_element_B *elements;
 };
 
 // input : 10111111111111
@@ -37,6 +42,24 @@ struct classifier_B {
 // inp^st: 00111011101101
 //   mask: 10000100001000 
 //in^st&m: 00000000001000
+
+
+void classifier_input(classifier_B classifier, bitstring_B input) {
+
+	assert(classifier->bitstring_size == bitstring_get_bitlength(input));
+	
+	list_L matching = classifier->message_board;
+	struct L_iterator iter = list_iterator(classifier->elements);
+	// collects matching patterns into messageboard
+	while(list_iteratorhasnext(&iter)) {
+		struct classifier_element_B *elem = list_iteratornext(&iter);
+		if(pattern_matches(elem->pattern, input, classifier->zeroref) && !elem->on_msg_board){
+			list_push(matching, elem);
+		}
+	}
+
+
+}
 
 pattern_B pattern_generate(char *str) {
 	assert(str);
