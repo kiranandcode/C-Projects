@@ -1,8 +1,11 @@
-//#include "classifier.h"
+#include "classifier.h"
 #include "list.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+int *v;
+#define integral(x) \
+	((v = malloc(sizeof(int))), *v = x, v)
 
 void print(void *item) {
 	if(item != NULL) {
@@ -14,24 +17,38 @@ void delete(void *item) {
 	printf("deleting ");
 	print(item);
 	printf("\n");
-	//free(item);
+	free(item);
+}
+
+void *add_3(void *item) {
+	int *in = item;
+//	printf("item was [%d]\n", *in);
+	*in += 3;
+//	printf("item is now [%d]\n", *in);
+	return in;
+}
+
+int greater_than_15(void *item) {
+	int *in = item;
+
+	return *in > 15;
 }
 
 int main() {
-
+/*	
 	list_L item = list_new();
 	list_print(item, print);	
 	int i = 10;
 	int j = 15;
 	int k = 28;
 	int l = 32;
-	list_append(item, &i);
-	list_append(item, &j);
+	list_append(item, integral(i));
+	list_append(item, integral(j));
 	list_print(item, print);	
 	printf("\n");
 
-	list_insert(item, &k, 2);
-	list_append(item, &l);
+	list_insert(item,integral(k), 2);
+	list_append(item,integral(l));
 	list_print(item, print);	
 	
 	printf("\n");
@@ -57,20 +74,51 @@ int main() {
 
 	printf("item in position [1] is %d\n", i_copy);
 
+	list_map(item, add_3);
+	list_map(item, add_3);
+
+	list_print(item, print);	
+	printf("\n");
+
+	list_L copy = list_filter(item, greater_than_15, NULL);
+
+	list_print(copy, print);	
+	printf("\n");
+	
 	list_delete(item, delete);
 
-/*	bitstring_B stream = bitstring_generate("0110101110");
-	pattern_B pattern =    pattern_generate("0###001110");
+	*/
+        bitstring_B stream = bitstring_generate("0110101110");
+	pattern_B patternA =   pattern_random(10); 
+	pattern_B patternB =   pattern_random(10);
+	pattern_B patternC = pattern_crossover(patternA, patternB);
 	
 	bitstring_print(stream);
 	printf("\n");
-	pattern_print(pattern);
+	pattern_print(patternA);
 	printf("\n");
-	if(pattern_matches(pattern, stream, NULL)) {
-		printf("matches\n");
+	pattern_print(patternB);
+	printf("\n");
+	pattern_print(patternC);
+	printf("\n");
+	if(pattern_matches(patternA, stream, NULL)) {
+		printf("A matches\n");
 	} else {
-		printf("does not match\n");
+		printf("A does not match\n");
 	}
-	*/
+
+
+	if(pattern_matches(patternB, stream, NULL)) {
+		printf("B matches\n");
+	} else {
+		printf("B does not match\n");
+	}
+
+	if(pattern_matches(patternC, stream, NULL)) {
+		printf("C matches\n");
+	} else {
+		printf("C does not match\n");
+	}
+
 
 }

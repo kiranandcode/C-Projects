@@ -25,6 +25,60 @@ L list_new() {
 	return list;
 }
 
+L list_copy(L list, void *copy_elem(void *)) {
+	L copy;
+	copy = list_new();
+	struct L_iterator iter = list_iterator(list);
+	while(list_iteratorhasnext(&iter)){
+		void *item = list_iteratornext(&iter);
+		if(copy_elem && copy_elem != NULL) {
+			item = copy_elem(item);
+		}
+		list_append(copy, item);
+	}
+	return copy;
+}
+
+void list_concat(L list, L second, void *(*copy_elem)(void *)) {
+	struct L_iterator iter = list_iterator(second);
+	while(list_iteratorhasnext(&iter)){
+		void *item = list_iteratornext(&iter);
+		if(copy_elem && copy_elem != NULL) {
+			item = copy_elem(item);
+		}
+		list_append(list, item);
+	}
+	return;
+}
+
+L list_slice(L list, unsigned int start, unsigned int end,
+		void *(*copy_elem)(void *)) {
+	assert(list);
+	assert(start < list->length && end <= list->length &&
+		start < end);
+	L slice = list_new();
+	struct L_iterator iter = list_iterator(list);
+	unsigned int current = 0;
+	while(current < start && list_iteratorhasnext(&iter)) 
+		list_iteratornext(&iter), current++;
+
+	assert(current == start);
+	list_append(slice, 
+	(copy_elem && copy_elem != NULL) ? copy_elem(list_iteratorcurrent(&iter)) : list_iteratorcurrent(&iter));
+
+	while(current < end && list_iteratorhasnext(&iter)){
+		void *item = list_iteratornext(&iter);
+		if(copy_elem && copy_elem != NULL) {
+			item = copy_elem(item);
+		}
+		list_append(list, item);
+		current++;
+	}
+	assert(current == end);
+	
+	return slice;
+}
+
 void list_delete(L list, void (*delete)(void *)) {
 	assert(list);
 
@@ -39,6 +93,29 @@ void list_delete(L list, void (*delete)(void *)) {
 	}
 }
 
+void list_map(L list, void *(*f)(void *)){
+	struct L_iterator iter = list_iterator(list);
+	while(list_iteratorhasnext(&iter)){
+		((struct _L*)iter.current)->item = f(((struct _L*)iter.current)->item);
+		list_iteratornext(&iter);
+	}
+}
+
+L list_filter(L list, int (*pred)(void *), void *(*copy_elem)(void *)) {
+	L copy;
+	copy = list_new();
+	struct L_iterator iter = list_iterator(list);
+	while(list_iteratorhasnext(&iter)){
+		void *item = list_iteratornext(&iter);
+		if(pred(item)){
+			if(copy_elem && copy_elem != NULL) {
+				item = copy_elem(item);
+			}
+			list_append(copy, item);
+		}
+	}
+	return copy;
+}
 
 void *list_get(L list, unsigned int position) {
 	assert(position < list->length);
@@ -184,13 +261,13 @@ struct L_iterator list_iterator(L list) {
 
 int list_iteratorhasnext(struct L_iterator *list_iterator) {
 	assert(list_iterator);
-	return list_iterator->current == NULL;
+	return list_iterator->current != NULL;
 }
 
 void *list_iteratornext(struct L_iterator *list_iterator) {
 	assert(list_iterator);
 	assert(list_iterator->current);
-	void *result = list_iterator->current;
+	void *result = ((struct _L *)list_iterator->current)->item;
 	list_iterator->current = ((struct _L *)list_iterator->current)->next;
 
 	return result;
@@ -207,6 +284,15 @@ void *list_iteratorcurrent(struct L_iterator *list_iterator) {
 unsigned int list_length(L list) {
 	assert(list);
 	return list->length;
+}
+
+void list_push(L list, void *item) {
+	assert(list);
+	list_insert(list, item, 0);
+}
+void *list_pop(L list) {
+	assert(list);
+	return list_removeat(list,0);
 }
 
 

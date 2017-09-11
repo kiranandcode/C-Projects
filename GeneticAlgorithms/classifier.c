@@ -1,4 +1,5 @@
 #include "classifier.h"
+#include "random.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -72,6 +73,39 @@ void pattern_print(pattern_B pattern) {
 		}
 	}
 
+}
+
+pattern_B pattern_random(unsigned int size) {
+	assert(size);
+	pattern_B pattern;
+	pattern = calloc(sizeof(*pattern),1);
+	assert(pattern);
+
+	pattern->string = bitstring_random(size);
+	pattern->mask   = bitstring_random(size);
+
+	return pattern;
+}
+
+pattern_B pattern_crossover(pattern_B patternA, pattern_B patternB){
+	assert(patternA);
+	assert(patternB);
+	assert(bitstring_get_bitlength(patternA->string)
+		==
+	       bitstring_get_bitlength(patternA->mask));
+	
+	assert(bitstring_get_bitlength(patternB->string)
+		==
+	       bitstring_get_bitlength(patternB->mask));
+
+	assert(bitstring_get_bitlength(patternA->string) ==
+			bitstring_get_bitlength(patternB->string));
+
+	pattern_B pattern;
+	pattern = calloc(sizeof(*pattern),1);
+	pattern->string = bitstring_crossover(patternA->string,patternB->string, random_range(0, bitstring_get_bitlength(patternA->string)));
+	pattern->mask = bitstring_crossover(patternA->mask,patternB->mask, random_range(0, bitstring_get_bitlength(patternA->mask)));
+	return pattern;
 }
 
 int pattern_matches(pattern_B pattern, bitstring_B string, bitstring_B zeroref) {
