@@ -1,5 +1,6 @@
 #include "classifier.h"
 #include "list.h"
+#include "set.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,10 +39,55 @@ int main() {
 /*	
 	list_L item = list_new();
 	list_print(item, print);	
+*/
+	set_S set = set_new(100);
+	set_print(set, print);
+	printf("\n");
+
 	int i = 10;
 	int j = 15;
 	int k = 28;
 	int l = 32;
+
+
+	set_insert(set, &i, NULL);
+
+	set_print(set, print);
+	printf("\n");
+
+	set_insert(set, &i, NULL);
+
+	set_print(set, print);
+	printf("\n");
+	
+	if(set_contains(set, &i, NULL))
+		printf("set contains %d\n", i);
+	else 
+		printf("set does not contain %d\n",i);
+	if(set_contains(set, &j, NULL))
+		printf("set contains %d\n", j);
+	else 
+		printf("set does not contain %d\n",j);
+	
+	set_insert(set, &j, NULL);
+
+	if(set_contains(set, &j, NULL))
+		printf("set contains %d\n", j);
+	else 
+		printf("set does not contain %d\n",j);
+	set_insert(set, &k, NULL);
+
+	if(set_contains(set, &k, NULL))
+		printf("set contains %d\n", k);
+	else 
+		printf("set does not contain %d\n",k);
+	set_insert(set, &l, NULL);
+
+	set_print(set, print);
+	printf("\n");
+
+
+/*	
 	list_append(item, integral(i));
 	list_append(item, integral(j));
 	list_print(item, print);	
@@ -87,7 +133,6 @@ int main() {
 	
 	list_delete(item, delete);
 
-	*/
         bitstring_B stream = bitstring_generate("0110101110");
 	pattern_B patternA =   pattern_random(10); 
 	pattern_B patternB =   pattern_random(10);
@@ -120,5 +165,6 @@ int main() {
 		printf("C does not match\n");
 	}
 
+	*/
 
 }
