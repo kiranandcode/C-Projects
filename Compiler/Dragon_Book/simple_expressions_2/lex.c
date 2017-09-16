@@ -578,7 +578,8 @@ goto id;
 				}
 
 
-			
+			default:
+				return UNKNOWN;	
 
 		}	
 

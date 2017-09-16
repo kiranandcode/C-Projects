@@ -138,4 +138,5 @@ int gettoken(filebuffer_F buffer);
 
 #define EOI 104
 #define IDENTIFIER 105
+#define UNKNOWN 106
 #endif 		//LEX_H
