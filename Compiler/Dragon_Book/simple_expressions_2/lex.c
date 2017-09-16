@@ -69,7 +69,183 @@ if(*rcp == '\n' || *rcp == '\v' || *rcp == '\f' || *rcp == '\r'){
 					}
 					continue;
 				}
+case '\'':
+// TODO implement char parsing
+break;
 
+case '\"':
+// TODO implement string parsing
+break;
+
+case '(': 
+	filebuffer_setcp(buffer, (char *)rcp);
+	return L_PARENS;
+case ')': 
+	filebuffer_setcp(buffer, (char *)rcp);
+	return R_PARENS;
+case '{':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return L_BRACE;
+case '}':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return R_BRACE;
+case '[':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return L_SQRBRACKET;
+case ']':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return R_SQRBRACKET;
+case ';':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return SEMICOLON;
+case '.':
+	// TODO deal with floating constants
+	filebuffer_setcp(buffer, (char *)rcp);
+	return DOT;
+case ',':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return COMMA;
+
+case '=':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return EQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return ASSIGN_OP;
+case '>':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return GTEQ_OP;
+	}
+	if(rcp[0] == '>'){ 
+		if(rcp[1] == '=') {
+			filebuffer_setcp(buffer, (char *)rcp+2);
+			return RSHIFTEQ_OP;
+		}
+		if(rcp[1] == '>') {
+			if(rcp[2] == '=') {
+				filebuffer_setcp(buffer, (char *)rcp+3);
+				return RRSHIFTEQ_OP;
+			}
+			filebuffer_setcp(buffer, (char *)rcp+2);
+			return RRSHIFT_OP;
+		}
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return RSHIFT_OP;
+	}
+	
+	filebuffer_setcp(buffer, (char *)rcp);
+	return GT_OP;
+case '<':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return LTEQ_OP;
+	}
+	if(rcp[0] == '<'){ 
+		if(rcp[1] == '=') {
+			filebuffer_setcp(buffer, (char *)rcp+2);
+			return LSHIFTEQ_OP;
+		}
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return LSHIFT_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return LT_OP;
+case '!':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return NEQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return NOT_OP;
+case '~':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return TILDE_OP;
+case '?':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return TERNARY_OP;
+case ':':
+	filebuffer_setcp(buffer, (char *)rcp);
+	return COLON_OP;
+case '&':
+	if(rcp[0] == '&'){
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return AND_OP;
+	}
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return BITANDEQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return BITAND_OP;
+case '|':
+	if(rcp[0] == '|'){
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return OR_OP;
+	}
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return BITOREQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return BITOR_OP;
+case '^':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return BITXOREQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return BITXOR_OP;
+case '+':
+	if(rcp[0] == '+') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return INC_OP;
+	}
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return ADDEQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return ADD_OP;
+case '-':
+	if(rcp[0] == '-') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return DECR_OP;
+	}
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return SUBEQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return SUB_OP;
+case '*':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return MULTEQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return MULT_OP;
+case '%':
+	if(rcp[0] == '=') {
+		filebuffer_setcp(buffer, (char *)rcp+1);
+		return MODEQ_OP;
+	}
+	filebuffer_setcp(buffer, (char *)rcp);
+	return MOD_OP;
+
+case '0':
+case '1':
+case '2':
+case '3':
+case '4':
+case '5':
+case '6':
+case '7':
+case '8':
+case '9':
+// TODO implement numeric parsing
+break;
 			case 'a':
 				//assert
 				if(rcp[0] == 's' &&
