@@ -3,9 +3,10 @@
 #include <stdlib.h>
 
 #define NUM_THREADS 20
-void *thr_func(void *arg) {
+THREAD_RETURN thr_func(void *arg) {
+    thread_paramload(arg);
 	printf("thread: %s\n", (char *) arg);
-	return NULL;
+	thread_return(NULL);
 }
 
 int main() {
