@@ -5,7 +5,7 @@
 
 #ifdef SYSINFO_OS_LINUX
 #define THREAD_RETURN void *
-#define thread_return(a) (return (void *)a)
+#define thread_return(a) do {return (void *)a;} while(0)
 #define thread_paramload(a) 0
 #elif defined(SYSINFO_OS_WINDOWS)
 #define THREAD_RETURN void
