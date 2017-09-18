@@ -40,10 +40,12 @@ M       thread_mutexnewcustom(int mutex_type);
 int     thread_mutexlock(M mutex);
 int     thread_mutextrylock(M mutex);
 int     thread_mutexrelease(M mutex);
+void thread_mutexdelete(M mutex);
 
 S       thread_semaphorenew();
 int     thread_semaphoreclaim(S semaphore);
 int     thread_semaphorerelease(S semaphore);
+void thread_semaphoredelete(S semaphore);
 
 #undef T
 #endif //THREAD_H
