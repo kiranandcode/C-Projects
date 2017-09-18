@@ -19,6 +19,7 @@ static void initialize_threading() {
 #if defined(SYSINFO_OS_LINUX)
 // linux
 #include <pthread.h>
+#include <semaphore.h>
 
 struct thread_T {
 	unsigned char isdetached;
@@ -107,28 +108,97 @@ void thread_globaldelete() {
 
 struct thread_mutex_T {
 	pthread_mutex_t mutex;
+	enum {
+		MUTEX_DEFAULT = 0,
+		MUTEX_RECURSIVE = 1,
+		MUTEX_ERRCHECK = 2
+	} mutex_type;
 };
 
 thread_mutex_T thread_mutexnew() {
 	thread_mutex_T mutex;
 	mutex = malloc(sizeof(*mutex));
 	int res = pthread_mutex_init(&mutex->mutex, NULL);
-	assert(!res);
+	mutex->mutex_type = MUTEX_DEFAULT;
+	if(res)
+		assert(0);
 	return mutex;
 }
-void thread_mutexlock(thread_mutex_T mutex) {
-	pthread_mutex_lock(&mutex->mutex);
+thread_mutex_T thread_mutexcustom(int mutex_type) {
+	assert(mutex_type >= 0 && mutex_type < 3);
+	thread_mutex_T mutex;
+	mutex = malloc(sizeof(*mutex));
+
+	int value;
+	switch(mutex_type) {
+		case 0:
+			value = PTHREAD_MUTEX_TIMED_NP;
+			break;
+		case 1:
+			value = PTHREAD_MUTEX_RECURSIVE_NP;
+			break;
+		case 2:
+			value = PTHREAD_MUTEX_ERRORCHECK_NP;
+			break;
+	}
+	pthread_mutexattr_t attr;
+	int res = pthread_mutexattr_init(&attr);
+
+	if(res)
+		assert(0);
+	pthread_mutexattr_settype(&attr,value);
+	res = pthread_mutex_init(&mutex->mutex, &attr);
+
+	pthread_mutexattr_destroy(&attr);
+	
+	mutex->mutex_type = mutex_type;
+	if(res)
+		assert(0);
+	return mutex;
 }
-void thread_mutextrylock(thread_mutex_T mutex) {
-	pthread_mutex_trylock(&mutex->mutex);
+int thread_mutexlock(thread_mutex_T mutex) {
+	return pthread_mutex_lock(&mutex->mutex);
 }
-void    thread_mutexrelease(thread_mutex_T mutex) {
-	pthread_mutex_unlock(&mutex->mutex);
+int thread_mutextrylock(thread_mutex_T mutex) {
+	return pthread_mutex_trylock(&mutex->mutex);
+}
+int thread_mutexrelease(thread_mutex_T mutex) {
+	return	pthread_mutex_unlock(&mutex->mutex);
 }
 
-thread_semaphore_T  thread_semaphorenew();
-void    thread_semaphoreclaim(thread_semaphore_T semaphore);
-void    thread_semaphorerelease(thread_semaphore_T semaphore);
+void thread_mutexdelete(thread_mutex_T mutex) {
+	assert(mutex);
+	int res = pthread_mutex_destroy(&mutex->mutex);
+	if(res)
+		assert(0);
+	free(mutex);
+}
+
+struct thread_semaphore_T {
+	sem_t semaphore;
+};
+thread_semaphore_T  thread_semaphorenew(int value) {
+	thread_semaphore_T semaphore;
+	semaphore = malloc(sizeof(*semaphore));
+	assert(semaphore);
+	int res = sem_init(&semaphore->semaphore, 0, value);
+	if(res)
+		assert(0);
+	return semaphore;
+}
+int thread_semaphoreclaim(thread_semaphore_T semaphore) {
+	return sem_wait(&semaphore->semaphore);
+}
+int thread_semaphorerelease(thread_semaphore_T semaphore) {
+	return sem_post(&semaphore->semaphore);
+}
+void thread_semaphoredelete(thread_semaphore_T semaphore) {
+	assert(semaphore);
+	int res = sem_destroy(&semaphore->semaphore);
+	if(res) 
+		assert(0);
+	free(semaphore);
+}
 
 
 
@@ -213,14 +283,18 @@ void    thread_globaldelete() {
 }
 
 
+struct thread_mutex_T {
+};
 
 thread_mutex_T thread_mutexnew();
-void thread_mutexlock(thread_mutex_T mutex);
-void    thread_mutexrelease(thread_mutex_T mutex);
+thread_mutex_T thread_mutexnewcustom(int mutex_type);
+int thread_mutexlock(thread_mutex_T mutex);
+int thread_mutextrylock(thread_mutex_T mutex);
+int thread_mutexrelease(thread_mutex_T mutex);
 
 thread_semaphore_T  thread_semaphorenew();
-void    thread_semaphoreclaim(thread_semaphore_T semaphore);
-void    thread_semaphorerelease(thread_semaphore_T semaphore);
+int thread_semaphoreclaim(thread_semaphore_T semaphore);
+int thread_semaphorerelease(thread_semaphore_T semaphore);
 
 
 
@@ -261,13 +335,24 @@ thread_mutex_T thread_mutexnew() {
 	assert(0);
 	return;
 }
-void thread_mutexlock(thread_mutex_T mutex) {
+thread_mutex_T thread_mutexnewcustom(int mutex_type) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+int thread_mutexlock(thread_mutex_T mutex) {
 	fprintf(stderr, "THREADERROR: Platform not supported.");
 	assert(0);
 	return;
 }
 
-void    thread_mutexrelease(thread_mutex_T mutex) {
+int thread_mutextrylock(thread_mutex_T mutex) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+
+int thread_mutexrelease(thread_mutex_T mutex) {
 	fprintf(stderr, "THREADERROR: Platform not supported.");
 	assert(0);
 	return;
@@ -278,12 +363,12 @@ thread_semaphore_T  thread_semaphorenew() {
 	assert(0);
 	return NULL;
 }
-void    thread_semaphoreclaim(thread_semaphore_T semaphore) {
+int thread_semaphoreclaim(thread_semaphore_T semaphore) {
 	fprintf(stderr, "THREADERROR: Platform not supported.");
 	assert(0);
 	return;
 }
-void    thread_semaphorerelease(thread_semaphore_T semaphore) {
+int thread_semaphorerelease(thread_semaphore_T semaphore) {
 	fprintf(stderr, "THREADERROR: Platform not supported.");
 	assert(0);
 	return;

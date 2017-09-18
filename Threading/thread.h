@@ -36,12 +36,14 @@ void    thread_delete(T thread);
 void    thread_globaldelete();
 
 M       thread_mutexnew();
-void    thread_mutexlock(M mutex);
-void    thread_mutexrelease(M mutex);
+M       thread_mutexnewcustom(int mutex_type);
+int     thread_mutexlock(M mutex);
+int     thread_mutextrylock(M mutex);
+int     thread_mutexrelease(M mutex);
 
 S       thread_semaphorenew();
-void    thread_semaphoreclaim(S semaphore);
-void    thread_semaphorerelease(S semaphore);
+int     thread_semaphoreclaim(S semaphore);
+int     thread_semaphorerelease(S semaphore);
 
 #undef T
 #endif //THREAD_H
