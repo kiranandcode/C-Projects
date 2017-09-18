@@ -18,8 +18,14 @@
 #endif
 
 #define T thread_T
+#define M thread_mutex_T
+#define S thread_semaphore_T
 struct T;
 typedef struct T *T;
+struct M;
+typedef struct M *M;
+struct S;
+typedef struct S *S;
 
 T       thread_new(THREAD_RETURN (*func)(void *), void *data);
 T       thread_detachednew(THREAD_RETURN (*func)(void *), void *data);
@@ -28,6 +34,14 @@ void    thread_setreturn(T thread, void *);
 void   *thread_getreturn(T thread);
 void    thread_delete(T thread);
 void    thread_globaldelete();
+
+M       thread_mutexnew();
+void    thread_mutexlock(M mutex);
+void    thread_mutexrelease(M mutex);
+
+S       thread_semaphorenew();
+void    thread_semaphoreclaim(S semaphore);
+void    thread_semaphorerelease(S semaphore);
 
 #undef T
 #endif //THREAD_H

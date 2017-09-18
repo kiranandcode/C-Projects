@@ -105,6 +105,33 @@ void thread_globaldelete() {
 	}
 }
 
+struct thread_mutex_T {
+	pthread_mutex_t mutex;
+};
+
+thread_mutex_T thread_mutexnew() {
+	thread_mutex_T mutex;
+	mutex = malloc(sizeof(*mutex));
+	int res = pthread_mutex_init(&mutex->mutex, NULL);
+	assert(!res);
+	return mutex;
+}
+void thread_mutexlock(thread_mutex_T mutex) {
+	pthread_mutex_lock(&mutex->mutex);
+}
+void thread_mutextrylock(thread_mutex_T mutex) {
+	pthread_mutex_trylock(&mutex->mutex);
+}
+void    thread_mutexrelease(thread_mutex_T mutex) {
+	pthread_mutex_unlock(&mutex->mutex);
+}
+
+thread_semaphore_T  thread_semaphorenew();
+void    thread_semaphoreclaim(thread_semaphore_T semaphore);
+void    thread_semaphorerelease(thread_semaphore_T semaphore);
+
+
+
 #elif defined(SYSINFO_OS_WINDOWS)
 #include <windows.h>
 #include <process.h>
@@ -185,6 +212,18 @@ void    thread_globaldelete() {
 	}
 }
 
+
+
+thread_mutex_T thread_mutexnew();
+void thread_mutexlock(thread_mutex_T mutex);
+void    thread_mutexrelease(thread_mutex_T mutex);
+
+thread_semaphore_T  thread_semaphorenew();
+void    thread_semaphoreclaim(thread_semaphore_T semaphore);
+void    thread_semaphorerelease(thread_semaphore_T semaphore);
+
+
+
 #else
 // error
 
@@ -216,5 +255,40 @@ void    thread_globaldelete() {
 	fprintf(stderr, "THREADERROR: Platform not supported.");
 	assert(0);
 }
+
+thread_mutex_T thread_mutexnew() {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+void thread_mutexlock(thread_mutex_T mutex) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+
+void    thread_mutexrelease(thread_mutex_T mutex) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+
+thread_semaphore_T  thread_semaphorenew() {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return NULL;
+}
+void    thread_semaphoreclaim(thread_semaphore_T semaphore) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+void    thread_semaphorerelease(thread_semaphore_T semaphore) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
+
+
 
 #endif
