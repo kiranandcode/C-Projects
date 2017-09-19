@@ -38,6 +38,7 @@ struct threadpool_T {
 	unsigned char iscancelled:1;
 	unsigned char isstopped:1;
 	unsigned char waitingforempty:1;
+	unsigned char waitingforemptythread:1;
 	struct threadpool_emptyelem_T *emptyqueue;
 	struct threadpool_taskelem_T *taskqueue;
 	struct threadpool_worker_T *workers;
@@ -48,7 +49,9 @@ struct threadpool_T {
 	thread_mutex_T emptyqueue_mutex;
 	thread_mutex_T taskqueue_mutex;
 	thread_mutex_T waitingforempty_mutex;
+	thread_mutex_T waitingforemptythread_mutex;
 	thread_semaphore_T taskqueue_sem;
+	thread_semaphore_T emptyqueue_sem;
 	thread_semaphore_T isempty_sem;
 	thread_T executor_thread;
 };
@@ -79,12 +82,21 @@ static THREAD_RETURN threadpool_mainfunction(void *arg) {
 			break;
 
 		// else due to new job
-		printf("Threadpool: Recieved a functions!\n");
+		//printf("Threadpool: Recieved a functions!\n");
 		int queue_empty = 0;
 		int waitingforempty = 0;
 		struct threadpool_taskelem_T *next_job;
 
+//		int i = 0;
 		thread_mutexlock(threadpool->taskqueue_mutex);
+//			struct threadpool_taskelem_T *t;
+//			t = threadpool->taskqueue;
+//			while(t != NULL) {
+//				i++;
+//				t = t->next;
+//			}
+//			printf("%d Tasks remaining before enqueing ", i);
+			
 			next_job = threadpool->taskqueue;
 			threadpool->taskqueue = next_job->next;
 			if(threadpool->taskqueue == NULL)
@@ -94,36 +106,41 @@ static THREAD_RETURN threadpool_mainfunction(void *arg) {
 		thread_mutexlock(threadpool->waitingforempty_mutex);
 			if(threadpool->waitingforempty)
 				waitingforempty = 1;
+
+			if(queue_empty && waitingforempty) {
+				thread_semaphorerelease(threadpool->isempty_sem);
+//				printf("Threadpool: EMPTY SIGNAL RELEASED\n");
+			}  
+
 		thread_mutexrelease(threadpool->waitingforempty_mutex);
 
-		if(queue_empty && waitingforempty) {
-			thread_semaphorerelease(threadpool->isempty_sem);
-		}
-		int assign_to = next_assign;
-		// check if any empty
-		thread_mutexlock(threadpool->emptyqueue_mutex);
-			if(threadpool->emptyqueue != NULL) {
-				struct threadpool_emptyelem_T *empty;
-				empty = threadpool->emptyqueue;
-				assign_to = threadpool->emptyqueue->index;
-				threadpool->emptyqueue = empty->next;
-				free(empty);
-			}
-		thread_mutexrelease(threadpool->emptyqueue_mutex);
-
-		// assign to the thread
-		threadpool_workerenqueuefromelem(&threadpool->workers[assign_to], next_job);
+			int assign_to = next_assign;
+			// check if any empty
+			thread_mutexlock(threadpool->emptyqueue_mutex);
+				if(threadpool->emptyqueue != NULL) {
+//					printf("ThreadPool: Retrieving queue\n");
+					struct threadpool_emptyelem_T *empty;
+					empty = threadpool->emptyqueue;
+					assign_to = threadpool->emptyqueue->index;
+					threadpool->emptyqueue = empty->next;
+					free(empty);
+				}
+				thread_mutexrelease(threadpool->emptyqueue_mutex);
+			// assign to the thread
+//			printf(" to thread %d\n", assign_to);
+			threadpool_workerenqueuefromelem(&threadpool->workers[assign_to], next_job);
 
 
-		next_assign = (next_assign + 1) % threadpool->thread_count;
+			next_assign = (next_assign + 1) % threadpool->thread_count;
 
 	}
 
-	printf("Threadpool cancelled\n");
+//	printf("Threadpool cancelled\n");
 	// cancel all the workers
 	int i;
 	for(i = 0; i < threadpool->thread_count; ++i) {
 		threadpool_workercancel(&threadpool->workers[i]);
+		thread_join(threadpool->workers[i].executer_thread);
 	}
 
 	thread_mutexlock(threadpool->stop_mutex);
@@ -139,9 +156,9 @@ static THREAD_RETURN threadpool_workerfunction(void *arg) {
 	int should_cancel = 0;
 	while(!should_cancel) {
 		// wait for task
-		printf("Thread[%d] sleeping\n", worker->index);
+//		printf("Thread[%d] sleeping\n", worker->index);
 		thread_semaphoreclaim(worker->queue_semaphore);
-		printf("Thread[%d] awoke\n", worker->index);
+//		printf("Thread[%d] awoke\n", worker->index);
 		
 		// check if due to cancellation
 		thread_mutexlock(worker->cancel_mutex);
@@ -150,12 +167,12 @@ static THREAD_RETURN threadpool_workerfunction(void *arg) {
 		thread_mutexrelease(worker->cancel_mutex);
 		if(should_cancel) break;
 
-		printf("Thread[%d]: recieved a job!\n", worker->index);
+//		printf("Thread[%d]: recieved a job!\n", worker->index);
 		// else due to new job
 		struct threadpool_taskelem_T *next_job;
 		thread_mutexlock(worker->queue_mutex);
-		next_job = worker->queue;
-		worker->queue = next_job->next;
+			next_job = worker->queue;
+			worker->queue = next_job->next;
 		thread_mutexrelease(worker->queue_mutex);
 
 		// if empty signalempty
@@ -164,10 +181,21 @@ static THREAD_RETURN threadpool_workerfunction(void *arg) {
 			emptyclaim = malloc(sizeof(*emptyclaim));
 			assert(emptyclaim);
 			emptyclaim->index = worker->index;
+
+			int should_signal = 0;
+			thread_mutexlock(worker->parent->waitingforemptythread_mutex);
+				if(worker->parent->waitingforemptythread)
+					should_signal = 1;
+			thread_mutexrelease(worker->parent->waitingforemptythread_mutex);
+	
 	
 			thread_mutexlock(worker->parent->emptyqueue_mutex);
 				emptyclaim->next = worker->parent->emptyqueue;
 				worker->parent->emptyqueue = emptyclaim;
+				if(should_signal) {
+					thread_semaphorerelease(worker->parent->emptyqueue_sem);
+//					printf("Thread [%d]: Signalling thread with new empty(%p)\n", worker->index, emptyclaim);
+				}
 			thread_mutexrelease(worker->parent->emptyqueue_mutex);
 		}
 
@@ -176,7 +204,7 @@ static THREAD_RETURN threadpool_workerfunction(void *arg) {
 		free(next_job);
 	}
 
-	printf("Thread[%d] cancelled\n", worker->index);
+//	printf("Thread[%d] cancelled(%p)\n", worker->index,worker);
 	thread_mutexlock(worker->stop_mutex);
 		worker->isstopped = 1;
 	thread_mutexrelease(worker->stop_mutex);
@@ -184,6 +212,7 @@ static THREAD_RETURN threadpool_workerfunction(void *arg) {
 	thread_return(NULL);
 }
 void threadpool_enqueue(T threadpool, void (*func) (void *), void * data) {
+//	static int i = 1;
 	assert(threadpool);
 	assert(func);
 	assert(data);
@@ -193,6 +222,7 @@ void threadpool_enqueue(T threadpool, void (*func) (void *), void * data) {
 	assert(new_job);
 	new_job->func = func;
 	new_job->data = data;
+//	printf("Enqueuing task %d\n", i++);
 
 	thread_mutexlock(threadpool->taskqueue_mutex);
 		new_job->next = threadpool->taskqueue;
@@ -228,7 +258,7 @@ static void threadpool_workerenqueuefromelem(struct threadpool_worker_T *worker,
 
 static void threadpool_workercancel(struct threadpool_worker_T *worker) {
 	
-	printf("Cancelling thread[%d]\n", worker->index);
+//	printf("Cancelling thread[%d]\n", worker->index);
 	thread_mutexlock(worker->cancel_mutex);
 		worker->iscancelled = 1;
 		thread_semaphorerelease(worker->queue_semaphore);
@@ -294,6 +324,8 @@ T threadpool_new(unsigned int thread_count) {
 
 	threadpool->isstopped = 0;
 	threadpool->iscancelled = 0;
+	threadpool->waitingforempty = 0;
+	threadpool->waitingforemptythread = 0;
 	threadpool->emptyqueue = NULL;
 	threadpool->taskqueue = NULL;
 	threadpool->workers = malloc(sizeof(*threadpool->workers)*thread_count);
@@ -308,9 +340,11 @@ T threadpool_new(unsigned int thread_count) {
 	threadpool->cancel_mutex = thread_mutexnew();
 	threadpool->stop_mutex = thread_mutexnew();
 	threadpool->waitingforempty_mutex = thread_mutexnew();
+	threadpool->waitingforemptythread_mutex = thread_mutexnew();
 	threadpool->emptyqueue_mutex = thread_mutexnew();
 	threadpool->taskqueue_mutex = thread_mutexnew();
 	threadpool->isempty_sem = thread_semaphorenew(0);
+	threadpool->emptyqueue_sem = thread_semaphorenew(0);
 	threadpool->taskqueue_sem = thread_semaphorenew(0);
 	threadpool->executor_thread = thread_new(threadpool_mainfunction, threadpool);
 	
@@ -356,7 +390,9 @@ void threadpool_delete(T threadpool) {
 	thread_mutexdelete(threadpool->emptyqueue_mutex);
 	thread_mutexdelete(threadpool->taskqueue_mutex);
 	thread_mutexdelete(threadpool->waitingforempty_mutex);
+	thread_mutexdelete(threadpool->waitingforemptythread_mutex);
 	thread_semaphoredelete(threadpool->taskqueue_sem);
+	thread_semaphoredelete(threadpool->emptyqueue_sem);
 	thread_semaphoredelete(threadpool->isempty_sem);
 	thread_delete(threadpool->executor_thread);
 
@@ -364,21 +400,25 @@ void threadpool_delete(T threadpool) {
 }
 void threadpool_join(T threadpool) {
 	assert(threadpool);
+//	printf("Joining threadpool\n");
 
 	int task_queue_empty = 0;
 	thread_mutexlock(threadpool->taskqueue_mutex);
 		if(threadpool->taskqueue != NULL)
 			task_queue_empty = 1;
 	thread_mutexrelease(threadpool->taskqueue_mutex);
+//	printf("Joining threadpool - checked whether task queue empty\n");
 
 	if(task_queue_empty) {
 		thread_mutexlock(threadpool->waitingforempty_mutex);
 			threadpool->waitingforempty = 1;
 		thread_mutexrelease(threadpool->waitingforempty_mutex);
+//		printf("Joining threadpool - waiting for queue empty, set waiting for empty\n");
 		
 		while(task_queue_empty) {
 			// wait for isempty signal
 			thread_semaphoreclaim(threadpool->isempty_sem);
+//			printf("Joining threadpool - recieved is empty sem\n");
 
 			thread_mutexlock(threadpool->taskqueue_mutex);
 				if(threadpool->taskqueue == NULL)
@@ -395,6 +435,50 @@ void threadpool_join(T threadpool) {
 
 	}
 
+//	printf("Joining threadpool - taskqueue empty\n");
+
+	thread_mutexlock(threadpool->waitingforemptythread_mutex);
+		threadpool->waitingforemptythread = 1;
+	thread_mutexrelease(threadpool->waitingforemptythread_mutex);
+	// at this point the input queue is empty
+	int empty_threads[threadpool->thread_count];
+	int i;
+	for(i = 0; i <threadpool->thread_count; ++i){
+		struct threadpool_worker_T *worker = &threadpool->workers[i];
+		thread_mutexlock(worker->queue_mutex);
+			if(worker->queue == NULL)
+				empty_threads[i] = 1;
+			else
+				empty_threads[i] = 0;
+		thread_mutexrelease(worker->queue_mutex);
+	}
+	while(1) {
+		int should_exit = 1;
+		for(i = 0; i < threadpool->thread_count; ++i)
+			if(!empty_threads[i]) should_exit = 0;
+		if(should_exit) break;
+		
+		// wait for a signal 
+		thread_semaphoreclaim(threadpool->emptyqueue_sem);
+//		printf("Joining threadpool - Recieved an empty queue signal\n");
+
+			int index;
+		thread_mutexlock(threadpool->emptyqueue_mutex);
+			struct threadpool_emptyelem_T *next = threadpool->emptyqueue;
+//			printf("Joining Threadpool empty queue is %p\n", next);
+			if(next != NULL) {
+				threadpool->emptyqueue = threadpool->emptyqueue->next;
+				index = next->index;
+		//	printf("Joining threadpool - freeing next\n");
+				free(next);
+				empty_threads[index] = 1;
+			}
+		thread_mutexrelease(threadpool->emptyqueue_mutex);
+	}
+	// at this point all threads are cancelled
+
+	threadpool_cancel(threadpool);
+	// finally join
 	thread_join(threadpool->executor_thread);
 }
 
