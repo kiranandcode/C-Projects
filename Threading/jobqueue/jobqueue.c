@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "thread.h"
 
@@ -64,6 +65,8 @@ void jobqueue_delete(jobqueue_T queue) {
 	thread_mutexdelete(queue->cancelmutex);
 	thread_semaphoredelete(queue->jobsemaphore);
 	thread_delete(queue->executer_thread);
+
+
 	struct jobqueue_elem_T *elem,*next;
 	elem = queue->job_queue;
 	while(elem != NULL) {
