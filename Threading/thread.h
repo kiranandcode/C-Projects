@@ -34,6 +34,7 @@ void    thread_setreturn(T thread, void *);
 void   *thread_getreturn(T thread);
 void    thread_delete(T thread);
 void    thread_globaldelete();
+void    thread_sleep(unsigned int seconds);
 
 M       thread_mutexnew();
 M       thread_mutexnewcustom(int mutex_type);

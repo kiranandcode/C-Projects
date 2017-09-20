@@ -41,7 +41,7 @@ void print_string_after_delay(void *data) {
 	execute_count[item->task_count] = 1;
 }
 
-#define data_count 5
+#define data_count 100
 int main() {
 	struct delay *datas;
 	datas =  malloc(sizeof(*datas) * data_count);
@@ -56,7 +56,7 @@ int main() {
 	}
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-	threadpool_T threadpool = threadpool_new(1);
+	threadpool_T threadpool = threadpool_new(50);
 
 
 	for(i = 0; i < data_count; i++) {
@@ -85,5 +85,5 @@ int main() {
 		printf("All tasks executed successfully\n");
 	}
 
-//	threadpool_delete(threadpool);
+	threadpool_delete(threadpool);
 }

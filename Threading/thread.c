@@ -21,6 +21,8 @@ static void initialize_threading() {
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <unistd.h>
+
 struct thread_T {
 	unsigned char isdetached;
 	unsigned char isjoined;
@@ -104,6 +106,10 @@ void thread_globaldelete() {
 			thread_join(thread);
 		}
 	}
+}
+
+void thread_sleep(unsigned int seconds) {
+	sleep(seconds);
 }
 
 struct thread_mutex_T {
@@ -281,6 +287,11 @@ void    thread_globaldelete() {
 		}
 	}
 }
+void thread_sleep(unsigned int seconds) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
+}
 
 
 struct thread_mutex_T {
@@ -328,6 +339,13 @@ void    thread_delete(thread_T thread) {
 void    thread_globaldelete() {
 	fprintf(stderr, "THREADERROR: Platform not supported.");
 	assert(0);
+}
+
+
+void thread_sleep(unsigned int seconds) {
+	fprintf(stderr, "THREADERROR: Platform not supported.");
+	assert(0);
+	return;
 }
 
 thread_mutex_T thread_mutexnew() {
