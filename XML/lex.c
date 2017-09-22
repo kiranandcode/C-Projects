@@ -78,8 +78,8 @@ void lexer_lexemecopy(lexer_L lexer, char *buf, size_t size) {
 	while(*str != '\0' && index < size - 1) {
 		buf[index++] = *str++;
 	}	
-	if(*str == '\0') 
-		printf("ZERO REACHED\n");
+//	if(*str == '\0') 
+//		printf("ZERO REACHED\n");
 	buf[index] = '\0';
 	return;
 }
@@ -162,6 +162,8 @@ static int internal_gettoken(lexer_L lexer) {
 						//printf("Copying over %c into str[%d]\n", start[index], index);
 						lexer->str[index] = start[index];
 					}
+
+//					printf("Zeroing %d\n", index);
 					lexer->str[index] = '\0';
 
 					// if </name  is before a newline, keep on retrieving lines until >, subsequent chars have
@@ -213,6 +215,8 @@ static int internal_gettoken(lexer_L lexer) {
 					for(index = 0; !isblank(start[index]) && start[index] != '>'  && index < (end - (char *)start); index++) {
 						lexer->str[index] = start[index];
 					}
+
+//					printf("Zeroing %d\n", index);
 					lexer->str[index] = '\0';
 					
 
@@ -283,6 +287,8 @@ static int internal_gettoken(lexer_L lexer) {
 /*						for(index = 0; !isblank(start[index]) && index < (end - (char *)start); index++) {
 							lexer->str[index] = start[index];
 						}*/
+
+//						printf("Zeroing %d\n", index);
 						lexer->str[index] = '\0';
 
 						filebuffer_setcp(buffer, (char *)rcp);
@@ -330,15 +336,15 @@ static int internal_gettoken(lexer_L lexer) {
 
 						if(*rcp != '<')
 						while(*rcp != '<') {
-							printf("Infinite while 2 entered again\n");
+//							printf("Infinite while 2 entered again\n");
 							while((*rcp != '<') && (*rcp != '\n') && (*rcp != '\v') && (*rcp != '\f')) {
 
 								if(*rcp == '\\' && *(rcp + 1) == '<') {
-									printf("2nd Unsigned Char %c\n", *rcp);
+//									printf("2nd Unsigned Char %c\n", *rcp);
 									lexer->str[index++] = *rcp++;
 								}
 
-								printf("2nd Char %c\n", *rcp);
+//								printf("2nd Char %c\n", *rcp);
 
 								lexer->str[index++] = *rcp++;
 
@@ -354,7 +360,7 @@ static int internal_gettoken(lexer_L lexer) {
 								}	
 							}
 							if(*rcp == '\n' || *rcp == '\v' || *rcp == '\f' || *rcp == '\r'){
-								printf("newline reached\n");
+//								printf("newline reached\n");
 								filebuffer_setcp(buffer, (char *)rcp);
 								filebuffer_fillbuf(buffer);
 								rcp = (unsigned char *)filebuffer_cp(buffer);
@@ -383,60 +389,128 @@ static int internal_gettoken(lexer_L lexer) {
 						}
 
 
+
+//						printf("Zeroing %d\n", index);
 						lexer->str[index] = '\0';
 
 						filebuffer_setcp(buffer, (char *)rcp);
 
 						return CONTENT;
 						break;
-					case ATTR_VALUE:
-						lexer->state = ATTR_NAME;
-				rcp = rcp - 1;
-				if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
+				case ATTR_VALUE:
+					lexer->state = ATTR_NAME;
+					rcp = rcp - 1;
+					index = 0;
+					if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
 						filebuffer_setcp(buffer, (char *)rcp);
 						filebuffer_fillbuf(buffer);
 						rcp = (unsigned char *)filebuffer_cp(buffer);
-				}
-				start = (char *)rcp;
-				while((*rcp != '=') && (*rcp != '/') && (*rcp != '>') && *rcp != '\n') rcp++;
-				end = (char *)rcp;
-				if((end - (char *)start) > lexer->strbuf_size) {
-					lexer->str = realloc(lexer->str, sizeof(*lexer->str) * ((end - (char *)start) + 10));
-					lexer->strbuf_size = (end - (char *)start) + 10;
-				}
-				index = 0;
-				// copy over the non blank chars into the str name
-				for(index = 0; !isblank(start[index]) && index < (end - (char *)start); index++) {
-					lexer->str[index] = start[index];
-				}
-				lexer->str[index] = '\0';
+					}
+						//start = (char *)rcp;
+					if(*rcp == '\"' || *rcp == '\''){
+						char term = *rcp;
+						rcp++;
+						while(1) {
+							while((*rcp != term) && (*rcp != '\n') && (*rcp != '\v') && (*rcp != '\f')) {
+								lexer->str[index++] = *rcp++;
+								if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
+									filebuffer_setcp(buffer, (char *)rcp);
+									filebuffer_fillbuf(buffer);
+									rcp = (unsigned char *)filebuffer_cp(buffer);
+								}
+								if((unsigned int)index > lexer->strbuf_size) {
+									lexer->str = realloc(lexer->str, sizeof(*lexer->str) *( index + 10));
+									lexer->strbuf_size = index + 10;
+								}	
+							}
 
-				filebuffer_setcp(buffer, (char *)rcp);
+							if(*rcp == '\n' || *rcp == '\v' || *rcp == '\f' || *rcp == '\r'){
+//								printf("newline reached\n");
+								filebuffer_setcp(buffer, (char *)rcp);
+								filebuffer_fillbuf(buffer);
+								rcp = (unsigned char *)filebuffer_cp(buffer);
 
-						return ATTRIBUTEVALUE;
-						break;
+								lexer->str[index++] = '\n';
+								if((unsigned int)index > lexer->strbuf_size) {
+									lexer->str = realloc(lexer->str, sizeof(*lexer->str) * (index + 10));
+									lexer->strbuf_size = index + 10;
+								}	
+								//printf("rcp is %c, rcp++ is %c\n", *rcp, *(rcp + 1));
+								rcp++;
+								continue;
+							}
+							if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
+								filebuffer_setcp(buffer,(char *)rcp);
+								filebuffer_fillbuf(buffer);
+								rcp = (unsigned char *)filebuffer_cp(buffer);
+							}
+
+//							start = (char *)rcp;
+
+							if(*rcp == term){
+								rcp++;
+								filebuffer_setcp(buffer, (char *)rcp);
+								break;
+							} 
+
+						}
+
+					} else 
+						while((!isblank(*rcp)) && (*rcp != '=') && (*rcp != '>') && *rcp != '\n') {
+							lexer->str[index++] = *rcp++;
+							if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
+								filebuffer_setcp(buffer, (char *)rcp);
+								filebuffer_fillbuf(buffer);
+								rcp = (unsigned char *)filebuffer_cp(buffer);
+							}
+							if((unsigned int)index > lexer->strbuf_size) {
+								lexer->str = realloc(lexer->str, sizeof(*lexer->str) *( index + 10));
+								lexer->strbuf_size = index + 10;
+							}	
+						}
+						//end = (char *)rcp;
+					if((unsigned int)index > lexer->strbuf_size) {
+						lexer->str = realloc(lexer->str, sizeof(*lexer->str) *( index + 10));
+						lexer->strbuf_size = index + 10;
+					}	
+
+//					printf("Zeroing %d\n", index);
+					lexer->str[index] = '\0';
+
+					filebuffer_setcp(buffer, (char *)rcp);
+
+					return ATTRIBUTEVALUE;
+					break;
 					case ATTR_NAME:
-				rcp = rcp - 1;
-				if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
-						filebuffer_setcp(buffer, (char *)rcp);
-						filebuffer_fillbuf(buffer);
-						rcp = (unsigned char *)filebuffer_cp(buffer);
-				}
-				start = (char *)rcp;
-				while((*rcp != '=') && (*rcp != '/') && (*rcp != '>') && *rcp != '\n') rcp++;
-				end = (char *)rcp;
-				if((end - (char *)start) > lexer->strbuf_size) {
-					lexer->str = realloc(lexer->str, sizeof(*lexer->str) * ((end - (char *)start) + 10));
-					lexer->strbuf_size = (end - (char *)start) + 10;
-				}
-				index = 0;
-				// copy over the non blank chars into the str name
-				for(index = 0; !isblank(start[index]) && index < (end - (char *)start); index++) {
-					lexer->str[index] = start[index];
-				}
-				lexer->str[index] = '\0';
+						rcp = rcp - 1;
+						index = 0;
+						if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
+							filebuffer_setcp(buffer, (char *)rcp);
+							filebuffer_fillbuf(buffer);
+							rcp = (unsigned char *)filebuffer_cp(buffer);
+						}
+						//start = (char *)rcp;
+						while((!isblank(*rcp)) && (*rcp != '=') && (*rcp != '>') && *rcp != '\n') {
+							lexer->str[index++] = *rcp++;
+							if(filebuffer_limit(buffer) - (char *)rcp < MAXTOKEN) {
+								filebuffer_setcp(buffer, (char *)rcp);
+								filebuffer_fillbuf(buffer);
+								rcp = (unsigned char *)filebuffer_cp(buffer);
+							}
+							if((unsigned int)index > lexer->strbuf_size) {
+								lexer->str = realloc(lexer->str, sizeof(*lexer->str) *( index + 10));
+								lexer->strbuf_size = index + 10;
+							}	
+						}
+						//end = (char *)rcp;
+						if((unsigned int)index > lexer->strbuf_size) {
+							lexer->str = realloc(lexer->str, sizeof(*lexer->str) *( index + 10));
+							lexer->strbuf_size = index + 10;
+						}	
+//						printf("Zeroing %d\n", index);
+						lexer->str[index] = '\0';
 
-				filebuffer_setcp(buffer, (char *)rcp);
+						filebuffer_setcp(buffer, (char *)rcp);
 
 						return ATTRIBUTENAME;
 						break;
