@@ -48,6 +48,10 @@ int main() {
 		}
 	}
 */
-	xml_parser_X parser = xml_parser(stdin, stderr);
-	xml_print(stdout, xml_parse(parser));
+	FILE *fp = fopen("inp.xml", "r");
+	if(fp != NULL) {
+		xml_parser_X parser = xml_parser(fp, stderr);
+		xml_print(stdout, xml_parse(parser));
+	}
+	fclose(fp);
 }

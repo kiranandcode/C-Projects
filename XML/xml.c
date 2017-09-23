@@ -178,8 +178,8 @@ Xattr xml_parsexmlattr(Xparser parser) {
 				value = malloc(sizeof(*value) * lexer_lexemelen(parser->lexer));
 				assert(value);
 				lexer_lexemecopy(parser->lexer, value, lexer_lexemelen(parser->lexer));
-				xml_parserconsume(parser, ATTRIBUTEVALUE);
 			}
+				xml_parserconsume(parser, ATTRIBUTEVALUE);
 		}
 
 		Xattr attr = xml_attr(key, value);
@@ -301,6 +301,7 @@ Xcont xml_parsexmlcont(Xparser parser) {
 		assert(str);
 		lexer_lexemecopy(parser->lexer, str, lexer_lexemelen(parser->lexer));
 		Xcont cont = xml_contentstr(str);	
+		xml_parserconsume(parser,CONTENT);
 		assert(cont);
 		return cont;
 	}
