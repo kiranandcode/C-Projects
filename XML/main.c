@@ -1,9 +1,10 @@
 #include "lex.h"
+#include "xml.h"
 #include <stdio.h>
 #define CHRBUFSIZE 300
 
 int main() {
-	int tok;
+/*	int tok;
 	char buf[CHRBUFSIZE];
 	lexer_L lexer = lexer_new(filebuffer_new(stdin));
 	while((tok = lexer_gettoken(lexer)) != EOI) {
@@ -46,5 +47,7 @@ int main() {
 
 		}
 	}
-
+*/
+	xml_parser_X parser = xml_parser(stdin, stderr);
+	xml_print(stdout, xml_parse(parser));
 }

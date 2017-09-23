@@ -66,7 +66,7 @@ size_t lexer_lexemelen(lexer_L lexer) {
 	char *str = lexer->str;
 	size_t size = 0;
 	while(*str++ != '\0') size++;
-	return size;
+	return size + 1;
 }
 void lexer_lexemecopy(lexer_L lexer, char *buf, size_t size) {
 	assert(lexer);
