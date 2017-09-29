@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define G shadermanager_G
 
@@ -21,6 +22,47 @@ struct shader_handle {
 	char *name;
 	GLuint type;
 };
+
+struct shader_attrib_handle {
+	GLuint index;
+	const char *name;
+};
+
+struct shadermanager_attriblist_G {
+	list_L list;
+};
+
+shadermanager_attriblist_G shadermanager_attriblistnew(int count, ...){
+	assert(count);
+	va_list ap;
+	list_L list = list_new();
+	int i;
+	va_start(ap, count);
+	for(i = 0; i < count; ++i) {
+		struct shader_attrib_handle *hd = malloc(sizeof(*hd));
+		hd->index = va_arg(ap, GLuint);
+		hd->name  = va_arg(ap, char *);
+		list_append(list, hd);
+	}
+	va_end(ap);
+	struct shadermanager_attriblist_G *res;
+	res = malloc(sizeof(*res));
+	res->list = list;
+	return res;
+}
+
+void  shader_attrib_handle_delete(void *hd) {
+	assert(hd);
+	struct shader_attrib_handle *handle = hd;
+	free(handle);
+}
+
+void shadermanager_attriblistdel(shadermanager_attriblist_G attriblist) {
+	assert(attriblist);
+	assert(attriblist->list);
+	list_delete(attriblist->list, shader_attrib_handle_delete);
+	free(attriblist);
+}
 
 G shadermanager_new(unsigned int size) {
 	assert(size);
@@ -108,8 +150,6 @@ GLuint shadermanager_createprogram(G manager, int collection) {
 			handle->shader = shader_new(handle->type, loadshader(handle->name));
 		}
 		glAttachShader(program, shader_get(handle->shader));
-		shader_delete(handle->shader);
-		handle->shader = NULL;
 	}
 	glLinkProgram(program);
 	errorchk_program(program);
@@ -117,6 +157,37 @@ GLuint shadermanager_createprogram(G manager, int collection) {
 	return program;
 
 }
+
+GLuint shadermanager_createattribprogram(G manager, int collection, shadermanager_attriblist_G list) {
+	assert(manager);
+	assert(collection >= 0 && collection < manager->size);
+
+	GLuint program = glCreateProgram();
+
+	struct L_iterator iter = list_iterator(manager->collections[collection]);
+	while(list_iteratorhasnext(&iter)) {
+		struct shader_handle *handle = list_iteratornext(&iter);
+		assert(handle);
+		if(handle->shader == NULL) {
+			handle->shader = shader_new(handle->type, loadshader(handle->name));
+		}
+		glAttachShader(program, shader_get(handle->shader));
+	}
+	iter = list_iterator(list->list);
+	while(list_iteratorhasnext(&iter)) {
+		struct shader_attrib_handle *handle = list_iteratornext(&iter);
+		glBindAttribLocation(program, handle->index, handle->name);
+	}
+
+
+	glLinkProgram(program);
+	errorchk_program(program);
+
+	return program;
+
+}
+
+
 void shadermanager_remove(G manager, int collection, char *name) {
 	assert(manager);
 	assert(collection >= 0 && collection < manager->size);

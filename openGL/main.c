@@ -99,11 +99,7 @@ int main() {
 	logger_log("Starting GLFW %s\n", glfwGetVersionString());
 	glfwSetErrorCallback(glfw_error_callback);
 
-	if(!glfwInit()) {
-		logger_err("ERROR: Could not start GLFW3\n");
-		return 1;
-	}
-
+	if(!glfwInit()) {logger_err("ERROR: Could not start GLFW3\n");return 1;}
 
 	// use glfw to create a window
 	GLFWwindow *window = createWindow(0);
@@ -129,63 +125,52 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	
 	GLfloat points[] = {
-		-0.5f, 0.5f, 0.0f,
+		0.0f, 0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-
+		-0.5f, -0.5f, 0.0f
 	};
 
-	GLfloat points2[] = {
-		0.6f, 0.8f, 0.0f,
-		0.4f, 0.6f, 0.0f,
-		0.6f, 0.6f, 0.0f
+	GLfloat colours[] = {
+		1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 1.0f
 	};
+	
 
 	GLuint vbo[] = {0,0};
+	GLuint vao[] = {0};
+
 	glGenBuffers(2, vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points2), points2, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
 
 
-
-	GLuint vao[] = {0, 0};
-	glGenVertexArrays(2, vao);
+	glGenVertexArrays(1, vao);
 	glBindVertexArray(vao[0]);
 		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glBindVertexArray(0);
 
-	glBindVertexArray(vao[1]);
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-		glVertexAttribPointer(0,3,GL_FLOAT, GL_FALSE, 0, NULL);
-	glBindVertexArray(0);
 
 
 	shadermanager_G manager = shadermanager_new(3);
-	shadermanager_add(manager, 0, "test.frag", GL_FRAGMENT_SHADER);
-	shadermanager_add(manager, 0, "test.vert", GL_VERTEX_SHADER);
+	shadermanager_add(manager, 0, "test3.frag", GL_FRAGMENT_SHADER);
+	shadermanager_add(manager, 0, "test3.vert", GL_VERTEX_SHADER);
 
-	shadermanager_add(manager, 1, "test2.frag", GL_FRAGMENT_SHADER);
-
-	shadermanager_add(manager, 1, "test2.vert", GL_VERTEX_SHADER);
+	shadermanager_attriblist_G attribs = shadermanager_attriblistnew(2, 0, "vertex_position", 1, "vertex_colour");
 
 
-	GLuint shader_programme = shadermanager_createprogram(manager, 0);
+	GLuint shader_programme = shadermanager_createattribprogram(manager, 0, attribs);
 	logger_log_program(shader_programme);
 
-
-
-	GLuint shader_programme2 = shadermanager_createprogram(manager, 1);
 
 	while(!glfwWindowShouldClose(window)) {
 		update_fps_counter(window);
@@ -198,10 +183,6 @@ int main() {
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 		glUseProgram(0);
 
-		glUseProgram(shader_programme2);
-			glBindVertexArray(vao[1]);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		glUseProgram(0);
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);
@@ -211,9 +192,9 @@ int main() {
 			shadermanager_reloadall(manager);
 			glDeleteProgram(shader_programme);
 
-			shader_programme = shadermanager_createprogram(manager, 0);
-			glDeleteProgram(shader_programme2);
-			shader_programme2 = shadermanager_createprogram(manager, 1);
+			shader_programme = shadermanager_createattribprogram(manager, 0, attribs);
+
+
 		}
 
 		handleExitPress(window);
