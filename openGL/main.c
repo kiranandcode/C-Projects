@@ -17,6 +17,25 @@ static int g_win_height = 480;
 static int g_fb_width = 640;
 static int g_fb_height = 480;
 
+double prev_seconds = 0;
+int frame_count = 0;
+void update_fps_counter(GLFWwindow *window) {
+	double current_seconds;
+	double elapsed_seconds;
+	current_seconds = glfwGetTime();
+	elapsed_seconds = current_seconds - prev_seconds;
+	if(elapsed_seconds > 0.25) {
+		prev_seconds = current_seconds;
+		char tmp[128];
+		double fps = (double) frame_count / elapsed_seconds;
+		sprintf(tmp, "opengl @ fps: %.2f", fps);
+		glfwSetWindowTitle(window, tmp);
+		frame_count = 0;
+	}
+	frame_count++;
+
+}
+
 void glPrintData(FILE *fp, int ref, char *str) {
 	fprintf(fp, "%s: %s\n",str, glGetString(ref));
 }
@@ -77,6 +96,7 @@ int main() {
 	glfw_enable_extras();
 	logger_log("Starting GLFW %s\n", glfwGetVersionString());
 	glfwSetErrorCallback(glfw_error_callback);
+
 	if(!glfwInit()) {
 		logger_err("ERROR: Could not start GLFW3\n");
 		return 1;
@@ -84,7 +104,7 @@ int main() {
 
 
 	// use glfw to create a window
-	GLFWwindow *window = createWindow(1);
+	GLFWwindow *window = createWindow(0);
 	if(window == NULL) return 1;
 
 	glfwSetWindowSizeCallback(window, glfw_window_size_callback);
@@ -99,6 +119,8 @@ int main() {
 	glewExperimental = GL_TRUE;
 	glewInit();
 
+
+	logger_log_gl_params();
 	glPrintData(stdout, GL_RENDERER, "Renderer");
 	glPrintData(stdout, GL_VERSION, "OpenGL version supported");
 
@@ -174,6 +196,7 @@ int main() {
 	glLinkProgram(shader_programme2);
 
 	while(!glfwWindowShouldClose(window)) {
+		update_fps_counter(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.6f,0.6f, 0.8f, 1.0f);
 		glViewport(0, 0, g_fb_width, g_fb_height);

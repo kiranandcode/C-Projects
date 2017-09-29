@@ -73,3 +73,51 @@ int logger_err(const char *message, ...) {
 	fclose(fp);
 	return 1;
 }
+
+void logger_log_gl_params() {
+	GLenum params[] = {
+		GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS,
+		GL_MAX_CUBE_MAP_TEXTURE_SIZE,
+		GL_MAX_DRAW_BUFFERS,
+		GL_MAX_FRAGMENT_UNIFORM_COMPONENTS,
+		GL_MAX_TEXTURE_IMAGE_UNITS,
+		GL_MAX_TEXTURE_SIZE,
+		GL_MAX_VARYING_FLOATS,
+		GL_MAX_VERTEX_ATTRIBS,
+		GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+		GL_MAX_VERTEX_UNIFORM_COMPONENTS,
+		GL_MAX_VIEWPORT_DIMS,
+		GL_STEREO
+	};
+	const char *names[] =  {
+		"GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS",
+		"GL_MAX_CUBE_MAP_TEXTURE_SIZE",
+		"GL_MAX_DRAW_BUFFERS",
+		"GL_MAX_FRAGMENT_UNIFORM_COMPONENTS",
+		"GL_MAX_TEXTURE_IMAGE_UNITS",
+		"GL_MAX_TEXTURE_SIZE",
+		"GL_MAX_VARYING_FLOATS",
+		"GL_MAX_VERTEX_ATTRIBS",
+		"GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS",
+		"GL_MAX_VERTEX_UNIFORM_COMPONENTS",
+		"GL_MAX_VIEWPORT_DIMS",
+		"GL_STEREO"
+	};
+
+
+	logger_log("GL Context Params:\n");
+	for(int i = 0; i < 10; ++i) {
+		GLint v = 0;
+		glGetIntegerv(params[i], &v);
+		printf("%d\n",v);
+		logger_log("%s %i\n", names[i], v);
+	}
+	GLint v[2];
+	v[0] = v[1] = 0;
+	glGetIntegerv(params[10], v);
+	logger_log("%s %i %i\n", names[10], v[0], v[1]);
+
+	GLboolean s = 0;
+	glGetBooleanv(params[11], &s);
+	logger_log("%s %u\n", names[11], s);
+}
