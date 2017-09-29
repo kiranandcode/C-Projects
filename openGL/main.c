@@ -8,6 +8,7 @@
 
 
 #include "shader.h"
+#include "shadermanager.h"
 #include "shaderloader.h"
 #include "logger.h"
 #include "errorchk.h"
@@ -170,52 +171,51 @@ int main() {
 	glBindVertexArray(0);
 
 
-	const char *code;
-	code = loadshader("test.frag");
-	shader_G fs = shader_new(GL_FRAGMENT_SHADER, code);
+	shadermanager_G manager = shadermanager_new(3);
+	shadermanager_add(manager, 0, "test.frag", GL_FRAGMENT_SHADER);
+	shadermanager_add(manager, 0, "test.vert", GL_VERTEX_SHADER);
 
-	code = loadshader("test.vert"); 
-	shader_G vs = shader_new(GL_VERTEX_SHADER, code);
+	shadermanager_add(manager, 1, "test2.frag", GL_FRAGMENT_SHADER);
+
+	shadermanager_add(manager, 1, "test2.vert", GL_VERTEX_SHADER);
 
 
-	code = loadshader("test2.frag");
-	shader_G fs2 = shader_new(GL_FRAGMENT_SHADER, code);
-
-	code = loadshader("test2.vert");
-	shader_G vs2 = shader_new(GL_VERTEX_SHADER, code);
-
-	GLuint shader_programme = glCreateProgram();
-	
-	glAttachShader(shader_programme, shader_get(fs));
-	glAttachShader(shader_programme, shader_get(vs));
-	glLinkProgram(shader_programme);
-	errorchk_program(shader_programme);
+	GLuint shader_programme = shadermanager_createprogram(manager, 0);
 	logger_log_program(shader_programme);
 
 
-	GLuint shader_programme2 = glCreateProgram();
-	glAttachShader(shader_programme2, shader_get(fs2));
-	glAttachShader(shader_programme2, shader_get(vs2));
-	glLinkProgram(shader_programme2);
 
-	errorchk_program(shader_programme2);
+	GLuint shader_programme2 = shadermanager_createprogram(manager, 1);
 
 	while(!glfwWindowShouldClose(window)) {
 		update_fps_counter(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.6f,0.6f, 0.8f, 1.0f);
 		glViewport(0, 0, g_fb_width, g_fb_height);
-		glUseProgram(shader_programme);
 
-		glBindVertexArray(vao[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUseProgram(shader_programme);
+			glBindVertexArray(vao[0]);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUseProgram(0);
 
 		glUseProgram(shader_programme2);
-		glBindVertexArray(vao[1]);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(vao[1]);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUseProgram(0);
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);
+
+
+		if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_R)) {
+			shadermanager_reloadall(manager);
+			glDeleteProgram(shader_programme);
+
+			shader_programme = shadermanager_createprogram(manager, 0);
+			glDeleteProgram(shader_programme2);
+			shader_programme2 = shadermanager_createprogram(manager, 1);
+		}
+
 		handleExitPress(window);
 	}
 
