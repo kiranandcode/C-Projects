@@ -10,6 +10,7 @@
 #include "shader.h"
 #include "shaderloader.h"
 #include "logger.h"
+#include "errorchk.h"
 
 static int g_win_width = 640;
 static int g_win_height = 480;
@@ -188,12 +189,16 @@ int main() {
 	glAttachShader(shader_programme, shader_get(fs));
 	glAttachShader(shader_programme, shader_get(vs));
 	glLinkProgram(shader_programme);
+	errorchk_program(shader_programme);
+	logger_log_program(shader_programme);
 
 
 	GLuint shader_programme2 = glCreateProgram();
 	glAttachShader(shader_programme2, shader_get(fs2));
 	glAttachShader(shader_programme2, shader_get(vs2));
 	glLinkProgram(shader_programme2);
+
+	errorchk_program(shader_programme2);
 
 	while(!glfwWindowShouldClose(window)) {
 		update_fps_counter(window);

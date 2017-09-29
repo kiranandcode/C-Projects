@@ -9,5 +9,6 @@ int logger_restart();
 int logger_log(const char *message, ...);
 int logger_err(const char *message, ...);
 void logger_log_gl_params();
+void logger_log_program(GLuint program);
 
 #endif //LOGGER_H
