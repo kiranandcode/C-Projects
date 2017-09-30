@@ -12,14 +12,15 @@ $(PROG): $(OBJS)
 	$(CC) $(LDLIBS) $(CFLAGS) $(OBJS) -o $@ 
 
 
-main.o : shader.h shadermanager.h logger.h errorchk.h
-shader.o : shader.h
-shaderloader.o : shaderloader.h
-shadermanager.o : shadermanager.h list.h errorchk.h shaderloader.h
-errorchk.o : errorchk.h logger.h
-logger.o : logger.h
-list.o : list.h
-matrix.o : matrix.h
+main.o: shader.h shadermanager.h logger.h errorchk.h
+shader.o: shader.h
+shaderloader.o: shaderloader.h
+shadermanager.o: shadermanager.h list.h errorchk.h shaderloader.h
+errorchk.o: errorchk.h logger.h
+logger.o: logger.h
+list.o: list.h
+table.o: table.h list.h
+matrix.o: matrix.h
 
 
 
