@@ -146,6 +146,7 @@ int main() {
 	};*/
 	
 	matrix_G view_matrix = graphicsmatrix_translation(-0.5f, 0.0f, 0.0f);
+	matrix_G rotation_matrix = graphicsmatrix_rotationY(0.01);
 	matrix_print(view_matrix);
 
 	float speed = 2.0f;
@@ -194,9 +195,9 @@ int main() {
 
 
 	// enable back face culling
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CW);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CW);
 
 	double prev_seconds = glfwGetTime();
 	while(!glfwWindowShouldClose(window)) {
@@ -209,6 +210,12 @@ int main() {
 		}
 		matrix_set(view_matrix, 0, 3, elapsed_seconds * speed + last_position);
 		last_position = matrix_get(view_matrix, 0, 3);
+
+
+		matrix_G new_matrix = matrix_mult(view_matrix, rotation_matrix);
+		matrix_delete(view_matrix);
+		view_matrix = new_matrix;
+
 //		matrix[12] = elapsed_seconds * speed + last_position;
 //		last_position = matrix[12];
 		glUseProgram(shader_programme);
