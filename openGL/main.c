@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 
 #include "shader.h"
@@ -136,7 +137,16 @@ int main() {
 		0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 1.0f
 	};
+
+	GLfloat matrix[] = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.0f, 0.0f, 1.0f
+	};
 	
+	float speed = 2.0f;
+	float last_position = 0.0f;
 
 	GLuint vbo[] = {0,0};
 	GLuint vao[] = {0};
@@ -163,16 +173,43 @@ int main() {
 
 	shadermanager_G manager = shadermanager_new(3);
 	shadermanager_add(manager, 0, "test3.frag", GL_FRAGMENT_SHADER);
-	shadermanager_add(manager, 0, "test3.vert", GL_VERTEX_SHADER);
+	shadermanager_add(manager, 0, "test4.vert", GL_VERTEX_SHADER);
 
 	shadermanager_attriblist_G attribs = shadermanager_attriblistnew(2, 0, "vertex_position", 1, "vertex_colour");
 
 
 	GLuint shader_programme = shadermanager_createattribprogram(manager, 0, attribs);
+	
+	int matrix_location = glGetUniformLocation(shader_programme, "matrix");
+	glUseProgram(shader_programme);
+	glUseProgram(shader_programme);
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+	glUseProgram(0);
+
 	logger_log_program(shader_programme);
 
 
+	// enable back face culling
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
+
+	double prev_seconds = glfwGetTime();
 	while(!glfwWindowShouldClose(window)) {
+		double current_seconds = glfwGetTime();
+
+		double elapsed_seconds = current_seconds - prev_seconds;
+		prev_seconds = current_seconds;
+		if(fabs(last_position) > 1.0f) {
+			speed = -speed;
+		}
+		matrix[12] = elapsed_seconds * speed + last_position;
+		last_position = matrix[12];
+		glUseProgram(shader_programme);
+			glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+		glUseProgram(0);
+
+
 		update_fps_counter(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.6f,0.6f, 0.8f, 1.0f);
