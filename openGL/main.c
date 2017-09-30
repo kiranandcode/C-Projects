@@ -1,18 +1,16 @@
 // make sure to include glew  before glfw
 // it's like a big header file
 #include <GL/glew.h>
-#define GLFW_DLL
 #include <GLFW/glfw3.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-
-#include "shader.h"
-#include "shadermanager.h"
-#include "shaderloader.h"
-#include "logger.h"
-#include "errorchk.h"
+#include "graphics/shader.h"
+#include "graphics/shadermanager.h"
+#include "error/logger.h"
+#include "error/errorchk.h"
 
 static int g_win_width = 640;
 static int g_win_height = 480;
@@ -139,7 +137,7 @@ int main() {
 	};
 
 	GLfloat matrix[] = {
-		1.0f, 0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f, 0.1f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		-0.5f, 0.0f, 0.0f, 1.0f
@@ -172,8 +170,8 @@ int main() {
 
 
 	shadermanager_G manager = shadermanager_new(3);
-	shadermanager_add(manager, 0, "test3.frag", GL_FRAGMENT_SHADER);
-	shadermanager_add(manager, 0, "test4.vert", GL_VERTEX_SHADER);
+	shadermanager_add(manager, 0, "shaders/test3.frag", GL_FRAGMENT_SHADER);
+	shadermanager_add(manager, 0, "shaders/test4.vert", GL_VERTEX_SHADER);
 
 	shadermanager_attriblist_G attribs = shadermanager_attriblistnew(2, 0, "vertex_position", 1, "vertex_colour");
 

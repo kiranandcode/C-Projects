@@ -1,8 +1,8 @@
 #include "shadermanager.h"
-#include "list.h"
+#include "util/list.h"
 
 #include "shaderloader.h"
-#include "errorchk.h"
+#include "error/errorchk.h"
 
 #include <stdlib.h>
 #include <assert.h>
