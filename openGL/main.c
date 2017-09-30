@@ -12,6 +12,8 @@
 #include "error/logger.h"
 #include "error/errorchk.h"
 
+#include "util/graphicsmatrix.h"
+
 static int g_win_width = 640;
 static int g_win_height = 480;
 
@@ -136,13 +138,16 @@ int main() {
 		0.0f, 0.0f, 1.0f
 	};
 
-	GLfloat matrix[] = {
-		1.0f, 0.0f, 0.0f, 0.1f,
+/*	GLfloat matrix[] = {
+		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
 		-0.5f, 0.0f, 0.0f, 1.0f
-	};
+	};*/
 	
+	matrix_G view_matrix = graphicsmatrix_translation(-0.5f, 0.0f, 0.0f);
+	matrix_print(view_matrix);
+
 	float speed = 2.0f;
 	float last_position = 0.0f;
 
@@ -181,7 +186,8 @@ int main() {
 	int matrix_location = glGetUniformLocation(shader_programme, "matrix");
 	glUseProgram(shader_programme);
 	glUseProgram(shader_programme);
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+		//glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+		graphicsmatrix_uniformv(matrix_location, view_matrix);
 	glUseProgram(0);
 
 	logger_log_program(shader_programme);
@@ -201,10 +207,13 @@ int main() {
 		if(fabs(last_position) > 1.0f) {
 			speed = -speed;
 		}
-		matrix[12] = elapsed_seconds * speed + last_position;
-		last_position = matrix[12];
+		matrix_set(view_matrix, 0, 3, elapsed_seconds * speed + last_position);
+		last_position = matrix_get(view_matrix, 0, 3);
+//		matrix[12] = elapsed_seconds * speed + last_position;
+//		last_position = matrix[12];
 		glUseProgram(shader_programme);
-			glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+			graphicsmatrix_uniformv(matrix_location, view_matrix);
+//			glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
 		glUseProgram(0);
 
 

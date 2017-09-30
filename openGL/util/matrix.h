@@ -1,6 +1,9 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 #include <stdio.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #define G matrix_G 
 
 #ifndef MATRIX_MULT_BOUNDARY
@@ -8,11 +11,11 @@
 #endif
 
 #ifndef MATRIX_TYPE
-#define MATRIX_TYPE double
+#define MATRIX_TYPE GLfloat 
 #endif
 
 #ifndef MATRIX_DESC
-#define MATRIX_DESC unsigned long 
+#define MATRIX_DESC GLulong
 #endif
 
 #ifndef MATRIX_DESC_FMT_STR
@@ -20,7 +23,7 @@
 #endif
 
 #ifndef MATRIX_TYPE_FMT_STR
-#define MATRIX_TYPE_FMT_STR "%lf"
+#define MATRIX_TYPE_FMT_STR "%f"
 #endif
 
 #define INT MATRIX_TYPE

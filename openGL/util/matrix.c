@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include "matrixrep.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,12 +9,6 @@
 #include <stdlib.h>
 
 #define G matrix_G
-
-struct matrix_G {
-	UINT row;
-	UINT col;
-	INT *val;
-};
 
 int srand_completed = 0;
 
@@ -267,7 +262,7 @@ G matrix_inv(G a) {
 	G row_echelon = matrix_copy(a);
 	G inverse = matrix_ident(a->row);
 
-	UINT i,j,k, i_k, j_k;
+	UINT i,j,k, i_k;
 	INT ratio;
 
 	// check for 0 values in column
