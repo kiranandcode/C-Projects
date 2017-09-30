@@ -67,7 +67,7 @@ T table_new(int hint, int cmp(const void *x, const void *y),
 	return table;
 }
 
-void Table_free(T *table, void delete(void *)) {
+void table_delete(T *table, void delete(void *)) {
 	assert(table && *table);
 	if((*table)->length > 0) {
 		struct binding *p, *q = NULL;
@@ -144,7 +144,10 @@ void *table_get(T table, const void *key) {
 		if((*table->cmp)(key, p->key) == 0)
 			break;
 	}
-	return p;
+	if(p != NULL)
+		return  p->value;
+	else
+		return NULL;
 }
 
 

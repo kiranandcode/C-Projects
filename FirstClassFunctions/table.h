@@ -13,7 +13,7 @@ struct T_iterator {
 T table_new(int hint,
 	    int cmp(const void *x, const void *y),
 	    unsigned hash(const void *key));
-T table_delete(T *table, void delete(void *));
+void table_delete(T *table, void delete(void *));
 
 int table_length(T table);
 void *table_put(T table, const void *key, void *value);

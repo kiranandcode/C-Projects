@@ -1,80 +1,37 @@
-#include "table.h"
-
+#include "functions.h"
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
-void printString(const void * v_str) {
-	const char *str = v_str;
-	printf("%s", str);
+// printf \a b -> print(a + b + c)
+struct F_args function(struct F_args closure, struct F_args params) {
+
+	int c = get(closure, c, int);
+	int a = get(params, a, int);
+	int b = get(params, b, int);
+	printf("%d + %d + %d = %d\n",a, b, c, c + a + b);
+	return function_args(0);
 }
 
-void printInt(void *v_str) {
-	int *in = v_str;
-	printf("%d", *in);
+
+// \c -> (a: c +3,b: c*2)
+struct F_args function2(struct F_args closure, struct F_args params) {
+	int c = get(params, c, int);
+	int cp3 = c + 3;
+	int cs3 = c * 3;
+	return function_args(2, var(int, a, cp3), var(int, b, cs3));
 }
 
-int keycmp(const void *v_strA, const void *v_strB) {
-	const char *strA = v_strA;
-	const char *strB = v_strB;
-
-	return strcmp(strA, strB);
-}
-
-unsigned keyhash(const void *v_str) {
-	const char *str = v_str;
-
-	unsigned res = 1;
-
-	while(*str) {
-		res = (((unsigned )str * 23) % 17) * res;
-		str++;
-	}
-
-	return res;
-}
-
-#define SET(i,v) (i) = malloc(sizeof(*(i))); *(i) = v
 
 int main() {
-	printf("Running\n");
-	int *i;
-	table_T table = table_new(3, keycmp, keyhash);
-	printf("Created table\n");
-	table_print(table, printString, printInt);
-	printf("printed table\n");
+	int i = 3;
+	function_F lambdaB = function_new(function, function_args(1, var(int, c, i)));
+	function_F lambdaA = function_new(function2, function_args(0));
+	function_apply(lambdaB, function_apply(lambdaA, function_args(1, var(int, c, i))));
 
-	SET(i,3);
-	printf("inserting %d\n", *i);
-	table_put(table, "word", i);
-	printf("inserted word: 3 into table\n");
+	printf("--------Now composing-------\n");
 
-	SET(i,10);
-	printf("inserting %d\n", *i);
-	table_put(table, "logo", i);
-	printf("inserted logo: 10 into table\n");
-
-	SET(i,23);
-	printf("inserting %d\n", *i);
-	table_put(table, "fire", i);
-	printf("inserted fire: 23 into table\n");
-
-	table_print(table, printString, printInt);
-	printf("printed table\n");
-
-	char *str = "fire";
-	printf("removing %s\n", str);
-	i = table_remove(table, str);
-	printf("returned %d\n", *i);
-
-	table_print(table, printString, printInt);
-	printf("printed table\n");
-
-	str = "logo";
-	printf("removing %s\n", str);
-	i = table_remove(table, str);
-	printf("returned %d\n", *i);
-
-	table_print(table, printString, printInt);
-	printf("printed table\n");
+	i = 4;
+	function_F lambdaBA = function_compose(lambdaA,lambdaB);
+	function_apply(lambdaBA, function_args(1, var(int, c, i)));
+	
 }
