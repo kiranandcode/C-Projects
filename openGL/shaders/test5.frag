@@ -22,10 +22,14 @@ void main() {
 	vec3 distance_to_light_eye = light_position_eye - position_eye;
 	vec3 direction_to_light_eye = normalize(distance_to_light_eye);
 
-	vec3 reflection_eye = reflect(-direction_to_light_eye, normal_eye);
+//	vec3 reflection_eye = reflect(-direction_to_light_eye, normal_eye);
 	vec3 surface_to_viewer_eye = normalize(-position_eye);
-	float dot_prod_specular = dot(reflection_eye, surface_to_viewer_eye);
-	dot_prod_specular = max(dot_prod_specular, 0.0);
+//	float dot_prod_specular = dot(reflection_eye, surface_to_viewer_eye);
+//	dot_prod_specular = max(dot_prod_specular, 0.0);
+//	float specular_factor = pow(dot_prod_specular, specular_exponent);
+
+	vec3 half_way_eye = normalize(surface_to_viewer_eye + direction_to_light_eye);
+	float dot_prod_specular = max(0.0, dot(half_way_eye, normal_eye));
 	float specular_factor = pow(dot_prod_specular, specular_exponent);
 
 
