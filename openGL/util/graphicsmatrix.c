@@ -6,6 +6,24 @@
 
 #define G matrix_G
 
+G graphicsmatrix_cross(G matrixA, G matrixB) {
+	assert(matrixA && matrixB);
+	assert(matrixA && matrixA->row == 3 && matrixA->col == 1);
+	assert(matrixB && matrixB->row == 3 && matrixB->col == 1);
+	G result = matrix_new(3, 1);
+
+	INT componentA = (matrixA->val[1] * matrixB->val[2]) - (matrixA->val[2] * matrixB->val[1]);
+	INT componentB = (matrixA->val[3] * matrixB->val[0]) - (matrixA->val[0] * matrixB->val[3]);
+	INT componentC = (matrixA->val[0] * matrixB->val[1]) - (matrixA->val[1] * matrixB->val[0]);
+
+	matrix_set(result, 0,0, componentA);
+	matrix_set(result, 1,0, componentB);
+	matrix_set(result, 2,0, componentC);
+
+	return result;
+}
+
+
 void graphicsmatrix_uniformv(GLuint location, G matrix) {
 	assert(matrix);
 	assert((matrix->row == matrix->col) && (matrix->row == 2 || matrix->row == 3 || matrix->row == 4));
@@ -23,6 +41,8 @@ void graphicsmatrix_uniformv(GLuint location, G matrix) {
 			assert(0);
 	}
 }
+
+
 
 G graphicsmatrix_translation(INT tx, INT ty, INT tz){ 
 	G matrix =  matrix_ident(4);
@@ -70,7 +90,7 @@ G graphicsmatrix_rotationZ(INT theta) {
 	return matrix;
 }
 
-G graphicsmatrix_view(G rotationvector, G forwardvector, G upvector, G positionvector) {
+static G graphicsmatrix_view_internal(G rotationvector, G forwardvector, G upvector, G positionvector) {
 	assert(rotationvector);
 	assert(forwardvector);
 	assert(upvector);
@@ -100,6 +120,28 @@ G graphicsmatrix_view(G rotationvector, G forwardvector, G upvector, G positionv
 
 	return matrix;
 }
+
+G graphicsmatrix_view(G camera_position, G target_position, G up_direction) {
+	assert(camera_position && camera_position->row == 3 && camera_position->col == 1);
+	assert(target_position && target_position->row == 3 && target_position->col == 1);
+	assert(up_direction && up_direction->row == 3 && up_direction->col == 1);
+
+
+	G diff = matrix_sub(target_position, camera_position);
+	G forward_direction = matrix_normalize(diff);
+
+	G rotation_direction = graphicsmatrix_cross(forward_direction, up_direction);
+	G reup_direction = graphicsmatrix_cross(rotation_direction, forward_direction);
+
+	G result = graphicsmatrix_view_internal(rotation_direction, forward_direction, reup_direction, camera_position);
+	matrix_delete(diff);
+	matrix_delete(forward_direction);
+	matrix_delete(rotation_direction);
+	matrix_delete(reup_direction);
+
+	return result;
+}
+
 
 G graphicsmatrix_birdseye() {
 	G matrix = matrix_new(4,4);
@@ -132,3 +174,5 @@ G graphicsmatrix_projection(INT aspect, INT near, INT far, INT fov) {
 
 	return graphicsmatrix_projection_internal(sx, sy, sz,pz);
 }
+
+

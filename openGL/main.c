@@ -147,7 +147,6 @@ int main() {
 	
 	matrix_G view_matrix = graphicsmatrix_translation(-0.5f, 0.0f, 0.0f);
 	matrix_G rotation_matrix = graphicsmatrix_rotationY(0.01);
-	matrix_print(view_matrix);
 
 	float speed = 2.0f;
 	float last_position = 0.0f;

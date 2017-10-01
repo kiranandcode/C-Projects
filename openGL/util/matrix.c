@@ -129,7 +129,8 @@ G matrix_mult(G a, G b) {
 	   b->col > MATRIX_MULT_BOUNDARY &&
 	   b->row > MATRIX_MULT_BOUNDARY) {
 
-		// strassens multiplication
+		// TODO: strassens multiplication
+		matrix_mult_normal(a,b,matrix);	
 
 
 	} else {
@@ -183,6 +184,32 @@ G matrix_dot(G a, G b) {
 
 	return matrix;
 }
+
+G matrix_normalize(G a) {
+	assert(a);
+	G matrix = matrix_new(a->row, a->col);
+
+	UINT i,j;
+	INT sum = 0;
+
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			sum += (*(a->val + (a->col * j) + i) * *(a->val + (a->col * j) + i)); 
+		}
+	if(!((sum < 0 && sum < -0.0001) || (sum > 0 && sum > 0.0001)))
+		sum = 1;
+	for(j = 0; j < a->row; ++j)
+		for(i = 0; i < a->col; ++i) {
+			*(matrix->val + (matrix->col * j) + i) = *(a->val + (a->col * j) + i) / sum; 
+		}
+
+
+
+	return matrix;
+}
+
+
+
 
 G matrix_scalar_mult(G a, INT val) {
 
@@ -581,6 +608,23 @@ G matrix_horizontal_concat(G a, G b) {
 		*(a->val + (row * a->col) + col) = val;
 
 	}
+
+	G matrix_reshape(G matrix, UINT row, UINT col) {
+	assert(matrix);
+	assert(row && col);
+	G result = matrix_new(row,col);
+
+
+	UINT i,j;
+	UINT jmax = (row < matrix->row ? row : matrix->row), imax = (col < matrix->col ? col : matrix->col);
+
+		for(j = 0; j < jmax; ++j) 
+			for(i = 0; i < imax; ++i)
+			matrix_set(result, j, i, matrix_get(matrix, j, i));
+
+		return result;
+	}
+
 
 	void matrix_delete(G matrix) {
 		assert(matrix);

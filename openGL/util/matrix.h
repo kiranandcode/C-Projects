@@ -39,12 +39,14 @@ G matrix_load(UINT row, UINT col, INT *values);
 //---------------------------------------------------------------
 UINT matrix_row_get(G matrix);
 UINT matrix_col_get(G matrix);
+G matrix_reshape(G matrix, UINT row, UINT col);
 //---------------------------------------------------------------
 G matrix_rand(UINT row, UINT col);                 // implemented
 G matrix_mult(G a, G b); 
 G matrix_add(G a, G b);                            // implemented
 G matrix_sub(G a, G b);                            // implemented
 G matrix_dot(G a, G b);                            // implemented
+G matrix_normalize(G a);                           // implemented
 // -----------------------------------------------------------
 G matrix_scalar_mult(G a, INT val);                // implemented
 G matrix_scalar_add(G a, INT val);                 // implemented
