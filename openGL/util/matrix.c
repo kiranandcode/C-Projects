@@ -185,6 +185,20 @@ G matrix_dot(G a, G b) {
 	return matrix;
 }
 
+INT matrix_dotproduct(G a, G b) {
+	assert(a->row == b->row && a->col == b->col);
+	UINT i,j;
+	INT sum = 0;
+
+	for(j = 0; j<a->row; ++j) {
+		for(i = 0; i <a->col; ++i){
+			sum += *(a->val + (a->col * j) + i) * *(b->val + (b->col * j) + i);
+		}
+	}
+
+	return sum;
+}
+
 G matrix_normalize(G a) {
 	assert(a);
 	G matrix = matrix_new(a->row, a->col);

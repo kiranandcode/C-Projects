@@ -46,6 +46,7 @@ G matrix_mult(G a, G b);
 G matrix_add(G a, G b);                            // implemented
 G matrix_sub(G a, G b);                            // implemented
 G matrix_dot(G a, G b);                            // implemented
+INT matrix_dotproduct(G a, G b);                   // implemented
 G matrix_normalize(G a);                           // implemented
 // -----------------------------------------------------------
 G matrix_scalar_mult(G a, INT val);                // implemented

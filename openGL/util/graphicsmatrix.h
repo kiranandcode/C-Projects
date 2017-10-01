@@ -18,6 +18,14 @@ G graphicsmatrix_vec2(INT x, INT y);
 G graphicsmatrix_vec3(INT x, INT y, INT z);
 G graphicsmatrix_vec4(INT x, INT y, INT z, INT w);
 
+G graphicsmatrix_quaternion(INT theta, INT x, INT y, INT z);
+G graphicsmatrix_quaternionfromvec(INT theta, G matrix);
+int graphicsmatrix_quaternioncheck(G quaternion);
+G graphicsmatrix_quaternionnormalize(G quaternion);
+G graphicsmatrix_quaternionmult(G quaternion_q, G quaternion_r);
+G graphicsmatrix_quaterniontomatrix(G quaternion);
+G graphicsmatrix_quaternionslerp(G quaternion_q, G quaternion_r, INT time);
+
 void graphicsmatrix_uniformv(GLuint location, G matrix);
 G graphicsmatrix_translation(INT tx, INT ty, INT tz);
 G graphicsmatrix_scale(INT sx, INT sy, INT sz);
