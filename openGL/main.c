@@ -15,34 +15,6 @@
 #include "util/graphicsmatrix.h"
 #include "util/graphicsutils.h"
 
-// use with glutMouseFunc
-matrix_G mousepostoworld(GLint mouse_x, GLint mouse_y, matrix_G projection_matrix_inv, matrix_G view_matrix_inv) {
-	INT  x = (2.0f * mouse_x) / (g_win_width - 1.0f);
-	INT  y = 1.0f - (2.0f * mouse_y) / g_win_height;
-	INT  z = -1.0f;
-
-	matrix_G ray_clip = graphicsmatrix_vec4(x, y, z, 1.0);
-	matrix_G ray_eye = matrix_mult(projection_matrix_inv, ray_clip);
-	
-	matrix_delete(ray_clip);
-	ray_clip = NULL;
-
-	matrix_set(ray_eye, 2, 0, -1.0);
-	matrix_set(ray_eye, 3, 0,  0.0);
-
-	matrix_G ray_world = matrix_mult(view_matrix_inv, ray_eye);
-	matrix_delete(ray_eye);
-	ray_eye = NULL;
-
-	matrix_G ray_world_normalized = graphicsmatrix_normalize(ray_world);
-	matrix_delete(ray_world);
-	ray_world = NULL;
-	
-	matrix_set(ray_world_normalized, 3, 0, 1.0);
-
-	return ray_world_normalized;
-}
-
 int main() {
 	// initialize glfw
 	glfw_require_opengl32();
@@ -80,9 +52,9 @@ int main() {
 		-0.5f, -0.5f, 0.0f
 	};
 
-	GLfloat colours[] = {
-		1.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
+	GLfloat normals[] = {
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
 		0.0f, 0.0f, 1.0f
 	};
 
@@ -94,12 +66,12 @@ int main() {
 	};*/
 	
 	matrix_G model_matrix = graphicsmatrix_translation(-0.5f, 0.0f, 0.0f);
-//	matrix_G rotation_matrix = graphicsmatrix_rotationY(0.01);
+	matrix_G rotation_matrix = graphicsmatrix_rotationY(0.01);
 
 
 
 	float cam_speed = 1.0f;
-	float cam_yaw_speed = 10.0f;
+	float cam_yaw_speed = 1.0f;
 
 	matrix_G camera_position = graphicsmatrix_vec3(0.0f, 0.0f, 2.0f);
 	float cam_yaw = 0.0f;
@@ -117,17 +89,20 @@ int main() {
 
 
 
-	//float speed = 2.0f;
-	//float last_position = 0.0f;
+	float speed = 2.0f;
+	float last_position = 0.0f;
 
 	GLuint vbo[] = {0,0};
 	GLuint vao[] = {0};
 
 	glGenBuffers(2, vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 
 
 	glGenVertexArrays(1, vao);
@@ -136,18 +111,20 @@ int main() {
 		glEnableVertexAttribArray(1);
 
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 
 
 	shadermanager_G manager = shadermanager_new(3);
-	shadermanager_add(manager, 0, "shaders/test3.frag", GL_FRAGMENT_SHADER);
-	shadermanager_add(manager, 0, "shaders/test4.vert", GL_VERTEX_SHADER);
+	shadermanager_add(manager, 0, "shaders/test5.frag", GL_FRAGMENT_SHADER);
+	shadermanager_add(manager, 0, "shaders/test5.vert", GL_VERTEX_SHADER);
 
-	shadermanager_attriblist_G attribs = shadermanager_attriblistnew(2, 0, "vertex_position", 1, "vertex_colour");
+	shadermanager_attriblist_G attribs = shadermanager_attriblistnew(2, 0, "vertex_position", 1, "vertex_normal");
 
 
 	GLuint shader_programme = shadermanager_createattribprogram(manager, 0, attribs);
@@ -178,16 +155,16 @@ int main() {
 
 		double elapsed_seconds = current_seconds - prev_seconds;
 		prev_seconds = current_seconds;
-//		if(fabs(last_position) > 1.0f) {
-//			speed = -speed;
-//		}
-//		matrix_set(view_matrix, 0, 3, elapsed_seconds * speed + last_position);
-//		last_position = matrix_get(view_matrix, 0, 3);
+		if(fabs(last_position) > 1.0f) {
+			speed = -speed;
+		}
+		matrix_set(model_matrix, 0, 3, elapsed_seconds * speed + last_position);
+		last_position = matrix_get(model_matrix, 0, 3);
 
 
-//		matrix_G new_matrix = matrix_mult(view_matrix, rotation_matrix);
-//		matrix_delete(view_matrix);
-//		view_matrix = new_matrix;
+		matrix_G new_matrix = matrix_mult(model_matrix, rotation_matrix);
+		matrix_delete(model_matrix);
+		model_matrix = new_matrix;
 
 //		matrix[12] = elapsed_seconds * speed + last_position;
 //		last_position = matrix[12];
