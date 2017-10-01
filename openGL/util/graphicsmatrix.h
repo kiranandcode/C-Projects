@@ -11,12 +11,13 @@ extern int g_fb_width;
 extern int g_fb_height;
 
 
-
+G graphicsmatrix_mousetoworld(GLint mouse_x, GLint mouse_y, G projection_matrix_inv, G view_matrix_inv);
 G graphicsmatrix_cross(G matrixA, G matrixB);
 
 G graphicsmatrix_vec2(INT x, INT y);
 G graphicsmatrix_vec3(INT x, INT y, INT z);
 G graphicsmatrix_vec4(INT x, INT y, INT z, INT w);
+G graphicsmatrix_normalize(G matrix);
 
 G graphicsmatrix_quaternion(INT theta, INT x, INT y, INT z);
 G graphicsmatrix_quaternionfromvec(INT theta, G matrix);

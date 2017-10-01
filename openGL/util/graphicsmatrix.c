@@ -6,6 +6,36 @@
 
 #define G matrix_G
 
+G graphicsmatrix_mousetoworld(GLint mouse_x, GLint mouse_y, G projection_matrix_inv, G view_matrix_inv) {
+	INT  x = (2.0f * mouse_x) / (g_win_width - 1.0f);
+	INT  y = 1.0f - (2.0f * mouse_y) / g_win_height;
+	INT  z = -1.0f;
+
+	G ray_clip = graphicsmatrix_vec4(x, y, z, 1.0);
+	G ray_eye = matrix_mult(projection_matrix_inv, ray_clip);
+	
+	matrix_delete(ray_clip);
+	ray_clip = NULL;
+
+	matrix_set(ray_eye, 2, 0, -1.0);
+	matrix_set(ray_eye, 3, 0,  0.0);
+
+	G ray_world = matrix_mult(view_matrix_inv, ray_eye);
+	matrix_delete(ray_eye);
+	ray_eye = NULL;
+
+	G ray_world_normalized = graphicsmatrix_normalize(ray_world);
+	matrix_delete(ray_world);
+	ray_world = NULL;
+	
+	matrix_set(ray_world_normalized, 3, 0, 1.0);
+
+	return ray_world_normalized;
+}
+
+
+
+
 G graphicsmatrix_cross(G matrixA, G matrixB) {
 	assert(matrixA && matrixB);
 	assert(matrixA && matrixA->row == 3 && matrixA->col == 1);
@@ -47,6 +77,26 @@ G graphicsmatrix_vec4(INT x, INT y, INT z, INT w) {
 	matrix_set(result, 3, 0, w);
 	return result;
 }
+
+
+G graphicsmatrix_normalize(G matrix) {
+	assert(matrix);
+	assert(matrix->row == 4 || matrix->row == 3);
+	G matrix_result = matrix_new(matrix->row, matrix->col);
+	INT sum = 0;
+	UINT i;
+	for(i = 0; i < 3; ++i)
+		sum += matrix->val[i] * matrix->val[i];
+	
+	matrix_set(matrix_result, 0, 0, matrix_get(matrix, 0, 0) / sum);
+	matrix_set(matrix_result, 1, 0, matrix_get(matrix, 1, 0) / sum);
+	matrix_set(matrix_result, 2, 0, matrix_get(matrix, 2, 0) / sum);
+	if(matrix->row == 4)
+		matrix_set(matrix_result, 3, 0, matrix_get(matrix, 3, 0));
+
+	return matrix_result;
+}
+
 
 G graphicsmatrix_quaternion(INT theta, INT x, INT y, INT z) {
 	G result = matrix_new(4,1);

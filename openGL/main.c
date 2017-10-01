@@ -15,6 +15,34 @@
 #include "util/graphicsmatrix.h"
 #include "util/graphicsutils.h"
 
+// use with glutMouseFunc
+matrix_G mousepostoworld(GLint mouse_x, GLint mouse_y, matrix_G projection_matrix_inv, matrix_G view_matrix_inv) {
+	INT  x = (2.0f * mouse_x) / (g_win_width - 1.0f);
+	INT  y = 1.0f - (2.0f * mouse_y) / g_win_height;
+	INT  z = -1.0f;
+
+	matrix_G ray_clip = graphicsmatrix_vec4(x, y, z, 1.0);
+	matrix_G ray_eye = matrix_mult(projection_matrix_inv, ray_clip);
+	
+	matrix_delete(ray_clip);
+	ray_clip = NULL;
+
+	matrix_set(ray_eye, 2, 0, -1.0);
+	matrix_set(ray_eye, 3, 0,  0.0);
+
+	matrix_G ray_world = matrix_mult(view_matrix_inv, ray_eye);
+	matrix_delete(ray_eye);
+	ray_eye = NULL;
+
+	matrix_G ray_world_normalized = graphicsmatrix_normalize(ray_world);
+	matrix_delete(ray_world);
+	ray_world = NULL;
+	
+	matrix_set(ray_world_normalized, 3, 0, 1.0);
+
+	return ray_world_normalized;
+}
+
 int main() {
 	// initialize glfw
 	glfw_require_opengl32();
