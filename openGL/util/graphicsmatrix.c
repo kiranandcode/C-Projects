@@ -24,6 +24,31 @@ G graphicsmatrix_cross(G matrixA, G matrixB) {
 }
 
 
+G graphicsmatrix_vec2(INT x, INT y) {
+	G result = matrix_new(2,1);
+	matrix_set(result, 0, 0, x);
+	matrix_set(result, 1, 0, y);
+	return result;
+}
+
+G graphicsmatrix_vec3(INT x, INT y, INT z) {
+	G result = matrix_new(3,1);
+	matrix_set(result, 0, 0, x);
+	matrix_set(result, 1, 0, y);
+	matrix_set(result, 2, 0, z);
+	return result;
+}
+
+G graphicsmatrix_vec4(INT x, INT y, INT z, INT w) {
+	G result = matrix_new(4, 1);
+	matrix_set(result, 0, 0, x);
+	matrix_set(result, 1, 0, y);
+	matrix_set(result, 2, 0, z);
+	matrix_set(result, 3, 0, w);
+	return result;
+}
+
+
 void graphicsmatrix_uniformv(GLuint location, G matrix) {
 	assert(matrix);
 	assert((matrix->row == matrix->col) && (matrix->row == 2 || matrix->row == 3 || matrix->row == 4));

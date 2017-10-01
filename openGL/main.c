@@ -13,88 +13,10 @@
 #include "error/errorchk.h"
 
 #include "util/graphicsmatrix.h"
-
-static int g_win_width = 640;
-static int g_win_height = 480;
-
-static int g_fb_width = 640;
-static int g_fb_height = 480;
-
-double prev_seconds = 0;
-int frame_count = 0;
-void update_fps_counter(GLFWwindow *window) {
-	double current_seconds;
-	double elapsed_seconds;
-	current_seconds = glfwGetTime();
-	elapsed_seconds = current_seconds - prev_seconds;
-	if(elapsed_seconds > 0.25) {
-		prev_seconds = current_seconds;
-		char tmp[128];
-		double fps = (double) frame_count / elapsed_seconds;
-		sprintf(tmp, "opengl @ fps: %.2f", fps);
-		glfwSetWindowTitle(window, tmp);
-		frame_count = 0;
-	}
-	frame_count++;
-
-}
-
-void glPrintData(FILE *fp, int ref, char *str) {
-	fprintf(fp, "%s: %s\n",str, glGetString(ref));
-}
-
-
-void glfw_error_callback(int error, const char *description) {
-	logger_err("GLFW ERROR[%i] -> %s\n", error, description);
-}
-
-void glfw_window_size_callback(GLFWwindow *window, int width, int height) {
-	g_win_width = width;
-	g_win_height = height;
-}
-
-void glfw_framebuffer_resize_callback(GLFWwindow *window, int width, int height) {
-	g_fb_width = width;
-	g_fb_height = height;
-}
-
-void glfw_require_opengl32() {
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-
-void glfw_enable_extras() {
-	glfwWindowHint(GLFW_SAMPLES, 4);
-}
-
-void handleExitPress(GLFWwindow *window) {
-	if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-		glfwSetWindowShouldClose(window,1);
-	}	
-}
-
-GLFWwindow *createWindow(int fullscreen) {
-	GLFWwindow *window = NULL;
-	if(fullscreen) {
-		GLFWmonitor* mon = glfwGetPrimaryMonitor();
-		const GLFWvidmode *vmode = glfwGetVideoMode(mon);
-		window = glfwCreateWindow(vmode->width, vmode->height, "Extended GL Init", mon, NULL);
-	} else {
-		window = glfwCreateWindow(640,490, "Hello Triangle", NULL, NULL);
-	}
-	if(!window || window == NULL) {
-		logger_err("GLFWERR - Could not open a window\n");
-		glfwTerminate();
-		return NULL;
-	}
-	return window;
-}
+#include "util/graphicsutils.h"
 
 int main() {
 	// initialize glfw
-	
 	glfw_require_opengl32();
 	glfw_enable_extras();
 	logger_log("Starting GLFW %s\n", glfwGetVersionString());
@@ -108,9 +30,7 @@ int main() {
 
 	glfwSetWindowSizeCallback(window, glfw_window_size_callback);
 	glfwSetFramebufferSizeCallback(window, glfw_framebuffer_resize_callback);
-
-
-
+	
 	// use this window - make opengl context use the window
 	glfwMakeContextCurrent(window);
 
@@ -145,11 +65,32 @@ int main() {
 		-0.5f, 0.0f, 0.0f, 1.0f
 	};*/
 	
-	matrix_G view_matrix = graphicsmatrix_translation(-0.5f, 0.0f, 0.0f);
-	matrix_G rotation_matrix = graphicsmatrix_rotationY(0.01);
+	matrix_G model_matrix = graphicsmatrix_translation(-0.5f, 0.0f, 0.0f);
+//	matrix_G rotation_matrix = graphicsmatrix_rotationY(0.01);
 
-	float speed = 2.0f;
-	float last_position = 0.0f;
+
+
+	float cam_speed = 1.0f;
+	float cam_yaw_speed = 10.0f;
+
+	matrix_G camera_position = graphicsmatrix_vec3(0.0f, 0.0f, 2.0f);
+	float cam_yaw = 0.0f;
+	matrix_G translation, rotation, view_matrix, projection_matrix;
+
+	translation = graphicsmatrix_translation(-matrix_get(camera_position, 0, 0),-matrix_get(camera_position, 1,0), -matrix_get(camera_position, 2,0));
+	rotation = graphicsmatrix_rotationY(cam_yaw);
+	view_matrix = matrix_mult(rotation, translation);
+	matrix_delete(rotation);
+	matrix_delete(translation);
+
+	projection_matrix = graphicsmatrix_projection((float)g_fb_width/(float)g_fb_height, 0.1f, 100.0f, 67.0f * ((2.0 * M_PI)/360.00));
+
+
+
+
+
+	//float speed = 2.0f;
+	//float last_position = 0.0f;
 
 	GLuint vbo[] = {0,0};
 	GLuint vao[] = {0};
@@ -184,10 +125,14 @@ int main() {
 	GLuint shader_programme = shadermanager_createattribprogram(manager, 0, attribs);
 	
 	int matrix_location = glGetUniformLocation(shader_programme, "matrix");
+	int proj_location = glGetUniformLocation(shader_programme, "proj");
+	int view_location = glGetUniformLocation(shader_programme, "view");
 	glUseProgram(shader_programme);
 	glUseProgram(shader_programme);
 		//glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
-		graphicsmatrix_uniformv(matrix_location, view_matrix);
+		graphicsmatrix_uniformv(matrix_location, model_matrix);
+		graphicsmatrix_uniformv(proj_location, projection_matrix);
+		graphicsmatrix_uniformv(view_location, view_matrix);
 	glUseProgram(0);
 
 	logger_log_program(shader_programme);
@@ -198,29 +143,45 @@ int main() {
 	//glCullFace(GL_BACK);
 	//glFrontFace(GL_CW);
 
+	int cam_moved = 0;
 	double prev_seconds = glfwGetTime();
 	while(!glfwWindowShouldClose(window)) {
 		double current_seconds = glfwGetTime();
 
 		double elapsed_seconds = current_seconds - prev_seconds;
 		prev_seconds = current_seconds;
-		if(fabs(last_position) > 1.0f) {
-			speed = -speed;
-		}
-		matrix_set(view_matrix, 0, 3, elapsed_seconds * speed + last_position);
-		last_position = matrix_get(view_matrix, 0, 3);
+//		if(fabs(last_position) > 1.0f) {
+//			speed = -speed;
+//		}
+//		matrix_set(view_matrix, 0, 3, elapsed_seconds * speed + last_position);
+//		last_position = matrix_get(view_matrix, 0, 3);
 
 
-		matrix_G new_matrix = matrix_mult(view_matrix, rotation_matrix);
-		matrix_delete(view_matrix);
-		view_matrix = new_matrix;
+//		matrix_G new_matrix = matrix_mult(view_matrix, rotation_matrix);
+//		matrix_delete(view_matrix);
+//		view_matrix = new_matrix;
 
 //		matrix[12] = elapsed_seconds * speed + last_position;
 //		last_position = matrix[12];
-		glUseProgram(shader_programme);
-			graphicsmatrix_uniformv(matrix_location, view_matrix);
-//			glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
-		glUseProgram(0);
+		if(cam_moved) {
+			translation = graphicsmatrix_translation(-matrix_get(camera_position, 0, 0),-matrix_get(camera_position, 1,0), -matrix_get(camera_position, 2,0));
+			rotation = graphicsmatrix_rotationY(cam_yaw);
+			view_matrix = matrix_mult(rotation, translation);
+			matrix_delete(rotation);
+			matrix_delete(translation);
+
+			projection_matrix = graphicsmatrix_projection((float)g_fb_width/(float)g_fb_height, 0.1f, 100.0f, 67.0f * ((2.0 * M_PI)/360.00));
+
+
+			glUseProgram(shader_programme);
+	//			graphicsmatrix_uniformv(matrix_location, view_matrix);
+	//			glUniformMatrix4fv(matrix_location, 1, GL_FALSE, matrix);
+				graphicsmatrix_uniformv(matrix_location, model_matrix);
+				graphicsmatrix_uniformv(proj_location, projection_matrix);
+				graphicsmatrix_uniformv(view_location, view_matrix);
+
+			glUseProgram(0);
+		}
 
 
 		update_fps_counter(window);
@@ -238,14 +199,53 @@ int main() {
 		glfwSwapBuffers(window);
 
 
+#define case(x, w) if(GLFW_PRESS == glfwGetKey((w),(x)))
 		if(GLFW_PRESS == glfwGetKey(window, GLFW_KEY_R)) {
 			shadermanager_reloadall(manager);
 			glDeleteProgram(shader_programme);
 
 			shader_programme = shadermanager_createattribprogram(manager, 0, attribs);
-
+		}
+		case(GLFW_KEY_A, window) {
+			matrix_set(camera_position, 0, 0, matrix_get(camera_position, 0, 0) - cam_speed * elapsed_seconds);			
+			cam_moved = 1;
+		}
+		case(GLFW_KEY_D, window) {
+			matrix_set(camera_position, 0, 0, matrix_get(camera_position, 0, 0) + cam_speed * elapsed_seconds);			
+			cam_moved = 1;
+		}
+		case(GLFW_KEY_PAGE_UP, window) {
+			matrix_set(camera_position, 1, 0, matrix_get(camera_position, 1, 0) + cam_speed * elapsed_seconds);			
+			cam_moved = 1;
+		}
+		case(GLFW_KEY_PAGE_DOWN, window) {
+			matrix_set(camera_position, 1, 0, matrix_get(camera_position, 1, 0) - cam_speed * elapsed_seconds);			
+			cam_moved = 1;
 
 		}
+		case(GLFW_KEY_W, window) {
+			matrix_set(camera_position, 2, 0, matrix_get(camera_position, 2, 0) - cam_speed * elapsed_seconds);			
+			cam_moved = 1;
+		}
+		case(GLFW_KEY_S, window) {
+			matrix_set(camera_position, 2, 0, matrix_get(camera_position, 2, 0) + cam_speed * elapsed_seconds);			
+			cam_moved = 1;
+		}
+		case(GLFW_KEY_LEFT, window) {
+			cam_yaw += cam_yaw_speed * elapsed_seconds;
+			cam_moved = 1;
+		}
+		case(GLFW_KEY_RIGHT, window) {
+			cam_yaw -= cam_yaw_speed * elapsed_seconds;
+			cam_moved = 1;
+		}
+
+
+
+
+
+
+#undef case
 
 		handleExitPress(window);
 	}

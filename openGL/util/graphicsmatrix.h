@@ -3,7 +3,20 @@
 #include "matrix.h"
 #define G matrix_G
 
+
+extern int g_win_width;
+extern int g_win_height;
+
+extern int g_fb_width;
+extern int g_fb_height;
+
+
+
 G graphicsmatrix_cross(G matrixA, G matrixB);
+
+G graphicsmatrix_vec2(INT x, INT y);
+G graphicsmatrix_vec3(INT x, INT y, INT z);
+G graphicsmatrix_vec4(INT x, INT y, INT z, INT w);
 
 void graphicsmatrix_uniformv(GLuint location, G matrix);
 G graphicsmatrix_translation(INT tx, INT ty, INT tz);
