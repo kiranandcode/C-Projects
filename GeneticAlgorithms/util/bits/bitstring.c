@@ -1,5 +1,5 @@
-#include "bitstring.h"
-#include "random.h"
+#include "bits/bitstring.h"
+#include "core/random.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,7 +32,7 @@ static unsigned char bit_masks[] = {
 	/* 0111 1111 */ 0x7F, /* 1111 1111 */ 0xFF
 };
 
-static int seed = -1;
+//static int seed = -1;
 
 static unsigned char and(unsigned char a, unsigned char b) {
 	return a & b;

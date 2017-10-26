@@ -1,6 +1,6 @@
-#include "classifier.h"
-#include "list.h"
-#include "set.h"
+#include "bits/pattern.h"
+#include "collections/list.h"
+#include "collections/set.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,7 +134,10 @@ int main() {
 	set_print(subt, print);
 	printf("\n");
 
-
+	printf("converting copy to list:\n");
+	list_L list = set_tolist(set, NULL);
+	list_print(list, print);
+	printf("\n");
 
 	set_remove(set, &i, NULL);
 	set_remove(set, &l, NULL);
@@ -145,6 +148,8 @@ int main() {
 
 	set_delete(set, delete);
 	set_delete(copy, delete);
+
+	
 
 /*	
 	list_append(item, integral(i));

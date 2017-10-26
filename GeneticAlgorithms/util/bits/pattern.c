@@ -1,11 +1,12 @@
-#include "classifier.h"
-#include "list.h"
-#include "random.h"
+#include "pattern.h"
+#include "collections/list.h"
+#include "core/random.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 struct pattern_B {
 	bitstring_B string;
@@ -159,6 +160,33 @@ int pattern_matches(pattern_B pattern, bitstring_B string, bitstring_B zeroref) 
 	bitstring_delete(inpxorstr);
 	bitstring_delete(ixsandmak);
 
+
+	return result;
+}
+
+unsigned int pattern_hash(void *item) {
+	assert(item);
+	unsigned int result = 0;
+	pattern_B pattern = item;
+
+
+	unsigned int midpoint = (sizeof(unsigned int)*4);
+	midpoint = (unsigned int)fmin((unsigned int)midpoint, (unsigned int)bitstring_get_bitlength(pattern->mask));
+	unsigned int i;
+	unsigned int offset;
+
+	for(i = 0; i < midpoint; ++i){
+		offset = i;
+		if(bitstring_bittest(pattern->string, i)){
+			result |= (1 << offset);
+		}
+	}
+	for(i = 0; i < midpoint; ++i){
+		offset = i + midpoint;
+		if(bitstring_bittest(pattern->mask, i)){
+			result |= (1 << offset);
+		}
+	}
 
 	return result;
 }
