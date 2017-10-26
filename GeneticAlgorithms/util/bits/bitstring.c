@@ -228,6 +228,26 @@ uint16_t bitstring_int(B string) {
 
 }
 
+unsigned int bitstring_bitcount(B string) {
+	unsigned int i,j;
+	unsigned int count = 0;
+
+	for(i = 0; i <string->length; ++i) {
+		unsigned int max = 8;
+		if(i == string->length-1)
+			max = string->bits;
+		unsigned char current_bytes = string->stream[i];
+		for(j = 0; j < max; ++j) {
+			if(1 & (current_bytes >> j))
+				count++;
+		}
+//		if(i != (int)stream->length -1)
+//			printf(",");
+	}
+	return count;
+
+}
+
 
 void bitstring_print(B string) {
 	unsigned int i,j;

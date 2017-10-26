@@ -25,6 +25,7 @@ B bitstring_and(B stringA, B stringB);
 B bitstring_or(B stringA, B stringB);
 B bitstring_xor(B stringA, B stringB);
 B bitstring_crossover(B stringA, B stringB, unsigned int pivot);
+unsigned int bitstring_bitcount(B string);
 uint16_t bitstring_int(B string);
 
 void bitstring_print(B string);

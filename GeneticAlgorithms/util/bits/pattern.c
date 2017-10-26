@@ -13,55 +13,6 @@ struct pattern_B {
 	bitstring_B mask;
 };
 
-struct classifier_element_B {
-	pattern_B pattern;
-	bitstring_B result;
-	unsigned char on_msg_board;
-	unsigned char output;
-	double strength;
-};
-
-struct classifier_B {
-	unsigned int bitstring_size;
-	bitstring_B zeroref;
-	list_L elements;
-	list_L message_board;
-//	struct classifier_element_B *elements;
-};
-
-// input : 10111111111111
-// result: 1####1####0###
-//         ----------e---
-//                   error
-//
-// string: 10000100010010
-//   mask: 10000100001000 
-// result: 1####1####0###
-//
-// inp&st: 10000100010010
-//
-// inp^st: 00111011101101
-//   mask: 10000100001000 
-//in^st&m: 00000000001000
-
-
-void classifier_input(classifier_B classifier, bitstring_B input) {
-
-	assert(classifier->bitstring_size == bitstring_get_bitlength(input));
-	
-	list_L matching = classifier->message_board;
-	struct L_iterator iter = list_iterator(classifier->elements);
-	// collects matching patterns into messageboard
-	while(list_iteratorhasnext(&iter)) {
-		struct classifier_element_B *elem = list_iteratornext(&iter);
-		if(pattern_matches(elem->pattern, input, classifier->zeroref) && !elem->on_msg_board){
-			list_push(matching, elem);
-		}
-	}
-
-
-}
-
 pattern_B pattern_generate(char *str) {
 	assert(str);
 	pattern_B pattern;
@@ -97,6 +48,10 @@ void pattern_print(pattern_B pattern) {
 		}
 	}
 
+}
+
+unsigned int pattern_strength(pattern_B pattern) {
+	return bitstring_bitcount(pattern->mask);
 }
 
 pattern_B pattern_random(unsigned int size) {
@@ -163,6 +118,7 @@ int pattern_matches(pattern_B pattern, bitstring_B string, bitstring_B zeroref) 
 
 	return result;
 }
+
 
 unsigned int pattern_hash(void *item) {
 	assert(item);
