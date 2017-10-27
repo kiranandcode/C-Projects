@@ -119,6 +119,17 @@ int pattern_matches(pattern_B pattern, bitstring_B string, bitstring_B zeroref) 
 	return result;
 }
 
+pattern_B pattern_cover(bitstring_B string) {
+	pattern_B result;
+	result = malloc(sizeof(*result));
+	assert(result);
+
+	result->string = bitstring_copy(string);
+	result->mask = bitstring_random(bitstring_get_bitlength(string));
+
+	return result;
+}
+
 
 unsigned int pattern_hash(void *item) {
 	assert(item);
