@@ -6,6 +6,6 @@
 double random_normal(double low, double high);
 double random_range(double low, double high);
 double random_random();
-void *random_choice();
+void *random_choice(void *items, unsigned int size);
 
 #endif //RANDOM_H

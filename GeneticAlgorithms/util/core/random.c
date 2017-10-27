@@ -53,7 +53,7 @@ double random_random() {
 
 
 void *random_choice(void *items, unsigned int size) {
-	int index = random_range(0, size);	
+	int index = (int)random_range(0, size);
 	return items + index;
 }
 

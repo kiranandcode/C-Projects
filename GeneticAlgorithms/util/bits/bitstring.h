@@ -31,6 +31,7 @@ uint16_t bitstring_int(B string);
 void bitstring_print(B string);
 unsigned int bitstring_get_bitlength(B string);
 bitstring_B bitstring_generate(char *str);
+void bitstring_mutate(B string, unsigned int mutation_count, double mutation_probability);
 
 #undef B
 #endif

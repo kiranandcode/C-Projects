@@ -157,3 +157,26 @@ unsigned int pattern_hash(void *item) {
 
 	return result;
 }
+
+
+void pattern_mutate(pattern_B pattern, unsigned int mutation_count, double mutation_probability) {
+	assert(pattern);
+    unsigned int i;
+	unsigned int length = bitstring_get_bitlength(pattern->mask);
+	for(i = 0; i< mutation_count; ++i) {
+		if(random_normal(0,1) < mutation_probability) {
+            bitstring_B string;
+			if (random_normal(0, 1) > 0.5)
+				string = pattern->mask;
+			else
+				string = pattern->string;
+
+            unsigned int pos = (unsigned int) random_range(0, length + 1);
+            pos %= length;
+
+            if (bitstring_bittest(string, pos)) bitstring_bitclear(string, pos);
+            else bitstring_bitset(string, pos);
+		}
+	}
+}
+

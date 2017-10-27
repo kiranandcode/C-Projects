@@ -289,3 +289,19 @@ bitstring_B bitstring_generate(char *str) {
 	return string;
 }
 
+void bitstring_mutate(B string, unsigned int mutation_count, double mutation_probability) {
+	unsigned int i;
+	unsigned int length = bitstring_get_bitlength(string);
+	for(i = 0; i< mutation_count; ++i) {
+		if(random_normal(0,1) < mutation_probability) {
+			unsigned int pos = (unsigned int)random_range(0, length + 1);
+			pos %= length;
+
+			if(bitstring_bittest(string, pos)) bitstring_bitclear(string,pos);
+			else bitstring_bitset(string, pos);
+		}
+	}
+
+}
+
+
