@@ -1,7 +1,7 @@
 #include "simplega.h"
 
-#include "bitstring.h"
-#include "random.h"
+#include "bits/bitstring.h"
+#include "core/random.h"
 
 #include <stdio.h>
 
@@ -128,7 +128,7 @@ bitstring_B haploid_genetic_algorithm(unsigned int population_size, unsigned int
 }
 
 
-int main() {
+/*int main() {
 	uint16_t val = bitstring_int(haploid_genetic_algorithm(50, 16, 20000, fitness, 0));
 	printf("result %u\n", val);
-}
+}*/

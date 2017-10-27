@@ -7,6 +7,15 @@
 #include <stdlib.h>
 
 int main() {
-	classifier_B classifier =classifier_new(10,10);
-	classifier_print(classifier);
+	classifier_B classifier =classifier_new(8*28*28,10);
+//	classifier_print(classifier);
+    for(int i = 0; i < 1000; i++) {
+        bitstring_B string = bitstring_random(8*28*28);
+        classifier_input(classifier, string);
+        //printf("Inputting String ");
+        //bitstring_print(string);
+        //printf("\n");
+        printf("Loop[%d]\n", i);
+    }
+	classifier_printoutput(classifier);
 }

@@ -52,7 +52,7 @@ void classifier_elementprint(struct classifier_element_B *elem) {
 	pattern_print(elem->pattern);
 	printf(" -> ");
 	bitstring_print(elem->result);
-	printf(" - %s(%lf, %i) [%i]", elem->output ? "OUTPUT" : "FEEDBACK", elem->fitness, elem->life, elem->freq);
+	printf(" - %s (%-3.3lf, %5i) [%5i]", elem->output ? "OUTPUT  " : "FEEDBACK", elem->fitness, elem->life, elem->freq);
 }
 
 void classifier_print(struct classifier_B *classifier) {
@@ -116,6 +116,17 @@ void classifier_outputdelete(struct output_B *msg) {
 	free(msg);
 	return;
 }
+
+void classifier_printoutput(classifier_B classifier) {
+	printf("OUTPUT:\n");
+	printf("\t");
+	if(classifier->output == NULL)
+		printf("NULL");
+	else
+		bitstring_print(classifier->output);
+	printf("\n");
+}
+
 
 struct message_B *classifier_messagenew(bitstring_B string, list_L activators) {
 	struct message_B *msg;
@@ -202,6 +213,8 @@ void classifier_update(classifier_B classifier, bitstring_B input) {
 		classifier_messagedelete(msg);
 	}
 
+
+
 	if(list_length(outputlist) == 0) {
 		struct classifier_element_B *elem;
 		elem = malloc(sizeof(*elem));
@@ -239,7 +252,7 @@ void classifier_update(classifier_B classifier, bitstring_B input) {
 		}
 		classifier->output = bitstring_copy(best->pattern->result);
 
-		best->pattern->fitness *= 1.5;
+		best->pattern->fitness *= 1.05;
 		best->pattern->freq++;
 
 		outputlistiter = list_iterator(outputlist);
@@ -248,22 +261,29 @@ void classifier_update(classifier_B classifier, bitstring_B input) {
 			struct output_B *output = list_iteratornext(&outputlistiter);
 			struct L_iterator iter = list_iterator(output->activators);
 			if(output != best) {
-				output->pattern->fitness *= 0.9;
+				output->pattern->fitness *= 0.99;
 				while(list_iteratorhasnext(&iter)) {
 					struct classifier_element_B *elem = list_iteratornext(&iter);
-					elem->fitness *= 0.9;
+					elem->fitness *= 0.99;
 					
 				}
 			} else {
 				while(list_iteratorhasnext(&iter)) {
 					struct classifier_element_B *elem = list_iteratornext(&iter);
-					elem->fitness *= 1.1;
+					elem->fitness *= 1.05;
 				}
 			}
 			classifier_outputdelete(output);
 		}
 
 	}
+
+    struct L_iterator patterns = list_iterator(classifier->elements);
+    while(list_iteratorhasnext(&patterns)) {
+			struct classifier_element_B *pattern = list_iteratornext(&patterns);
+        	pattern->life = pattern->fitness;
+    }
+
 
 	list_delete(outputlist, NULL);
 }
@@ -326,7 +346,8 @@ void classifier_input(classifier_B classifier, bitstring_B input) {
 
 	assert(classifier->bitstring_size == bitstring_get_bitlength(input));
 	
-	list_append(classifier->message_board, bitstring_copy(input));
+	//list_append(classifier->message_board, bitstring_copy(input));
+	classifier_messageboard_insert(classifier, input, NULL);
 
 	classifier_update(classifier, input);
 }
