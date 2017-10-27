@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "classifier.h"
 #include "bits/pattern.h"
 #include "core/random.h"
@@ -35,6 +36,68 @@ struct output_B {
 	list_L activators;
 };
 
+struct classifier_element_B *classifier_elementrandom(unsigned int size) {
+	struct classifier_element_B *elem;
+	elem = malloc(sizeof(*elem));
+	elem->result = bitstring_random(size);
+	elem->pattern = pattern_random(size);
+	elem->fitness = random_range(0,20);
+	elem->life = elem->fitness;
+	elem->output = random_range(0,1) > 0.5 ? 1 : 0;
+	elem->freq = 0;
+	return elem;
+}
+
+void classifier_elementprint(struct classifier_element_B *elem) {
+	pattern_print(elem->pattern);
+	printf(" -> ");
+	bitstring_print(elem->result);
+	printf(" - %s(%lf, %i) [%i]", elem->output ? "OUTPUT" : "FEEDBACK", elem->fitness, elem->life, elem->freq);
+}
+
+void classifier_print(struct classifier_B *classifier) {
+	printf("MESSAGE BOARD:\n");
+	struct L_iterator iter = list_iterator(classifier->message_board);
+	while(list_iteratorhasnext(&iter)) {
+		printf("\t");
+		bitstring_print(((struct message_B *)list_iteratornext(&iter))->string);
+		printf("\n");
+	}
+	iter = list_iterator(classifier->elements);
+	printf("PATTERNS:\n");
+	while(list_iteratorhasnext(&iter)) {
+		printf("\t");
+		classifier_elementprint(list_iteratornext(&iter));
+		printf("\n");
+	}
+
+	printf("OUTPUT: ");
+	if(classifier->output != NULL) {
+		bitstring_print(classifier->output);
+	}
+	else {
+		printf("NULL");
+	}
+	printf("\n");
+}
+
+struct classifier_B *classifier_new(unsigned int size, unsigned int count) {
+	struct classifier_B *result;
+	result = malloc(sizeof(*result));
+	result->message_board = list_new();
+	result->elements = list_new();
+	result->bitstring_size = size;
+	result->zeroref = bitstring_new(size);
+	result->output = NULL;
+	
+	unsigned int i;
+	for(i = 0; i < count; ++i) {
+		list_append(result->elements, classifier_elementrandom(size));
+	}
+
+	return result;
+}
+
 struct output_B *classifier_outputnew(struct classifier_element_B *pattern, list_L activators) {
 	struct output_B *msg;
 
@@ -44,8 +107,9 @@ struct output_B *classifier_outputnew(struct classifier_element_B *pattern, list
 	msg->activators = activators == NULL ? list_new() : list_copy(activators, NULL);
 
 	return msg;
-
 }
+
+
 
 void classifier_outputdelete(struct output_B *msg) {
 	list_delete(msg->activators, NULL);
