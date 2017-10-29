@@ -343,13 +343,24 @@ void classifier_supervise(classifier_B classifier, bitstring_B input, bitstring_
 	}
 	else {
 		struct output_B *best = list_get(outputlist, 0);
-		float max_fit = bitstring_simmilarity(best->pattern->result, expected);
+		double max_fit = bitstring_simmilarity(best->pattern->result, expected);
 
 		struct L_iterator outputlistiter = list_iterator(outputlist);
 
 		while(list_iteratorhasnext(&outputlistiter)) {
 			struct output_B *output = list_iteratornext(&outputlistiter);
-			float simmilarity = bitstring_simmilarity(output->pattern->result, expected);
+			double max_len = bitstring_get_bitlength(output->pattern->result);
+			double simmilarity = bitstring_simmilarity(output->pattern->result, expected);
+
+			// value between 0 and 1 representing how close the output is - the closer to 1, the better
+			double closeness = simmilarity/max_len;
+
+			// value between -0.5 and 0.5 representing how close the output is
+			double modifier = closeness - 0.5;
+			modifier = modifier < 0 ? (modifier > 0.001 ? 0.001 : modifier) : (modifier < 0.001 ? 0.001 : modifier);
+
+			output->pattern->fitness += modifier;
+
 			if(simmilarity > max_fit) {
 				best = output;
 				max_fit = simmilarity;

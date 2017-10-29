@@ -2,6 +2,7 @@
 #define BITSTRING_H
 #define B bitstring_B
 #include <stdint.h>
+#include <stdio.h>
 
 struct B;
 typedef struct B *B;
@@ -14,6 +15,7 @@ typedef struct B *B;
 B bitstring_new(unsigned int bitlength);
 void bitstring_delete(B string);
 B bitstring_copy(B string);
+bitstring_B  bitstring_csv_fload(FILE *fp, unsigned int size);
 int bitstring_eq(B stringA, B stringB);
 B bitstring_random(unsigned int bitlength);
 void bitstring_set(B string, unsigned char sequence, unsigned int startbit, unsigned int sequence_length);

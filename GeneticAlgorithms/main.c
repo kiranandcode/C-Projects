@@ -6,7 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 int main() {
+	/*
 	bitstring_B stringA = bitstring_random(20);
         bitstring_B stringB = bitstring_random(20);
 	bitstring_B stringC = bitstring_newbucketstring(20, 5, 2);
@@ -24,7 +26,7 @@ int main() {
 	int buckets = 5;
 	printf("A as %d buckets: %u\n", buckets,  bitstring_asbuckets(stringA, buckets));
 	printf("B as %d buckets: %u\n", buckets, bitstring_asbuckets(stringB, buckets));
-	/*
+	*//*
 	classifier_B classifier =classifier_new(8*28*28,10);
 //	classifier_print(classifier);
     for(int i = 0; i < 1000; i++) {
@@ -37,5 +39,14 @@ int main() {
 	classifier_evolve(classifier, 100, 50, 0.03);
     }
 	classifier_printoutput(classifier);
+
 	*/
+
+	FILE *fp = fopen("test.csv", "r");
+
+	bitstring_B result = bitstring_csv_fload(fp, 5);
+	
+	bitstring_print(result);
+	
+
 }

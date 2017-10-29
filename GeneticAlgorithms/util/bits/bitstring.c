@@ -88,6 +88,36 @@ B bitstring_copy(B string) {
 	return copy;
 }
 
+bitstring_B  bitstring_csv_fload(FILE *fp, unsigned int size) {
+
+	bitstring_B string = bitstring_new(size * 8);
+	unsigned int i,j;
+	//char buf[10];
+	//sprintf(buf, "%s,", MATRIX_TYPE_FMT_STR);
+
+	for(i = 0; i < size; i++) {
+		unsigned int value = 0;
+		fscanf(fp, "%d ", &value);
+		uint8_t result = value;
+
+		for(j = 0; j < 8; ++j) {
+			if(result & individual_bit_masks[j]) {
+				bitstring_bitset(string, i * 8 + j);
+			}
+		}	
+		
+
+		char c = getc(fp);
+
+		//assert((c == ',' || c == EOF || c == '\0' || c == '\n'));
+	
+		if(!(c == ',' || c == EOF || c == '\0' || c == '\n'))
+			ungetc(c,fp);
+	}
+	return string;
+}
+
+
 int bitstring_eq(B stringA, B stringB) {
     if(bitstring_get_bitlength(stringA) != bitstring_get_bitlength(stringB))
 	    return 0;
@@ -241,7 +271,7 @@ unsigned int bitstring_bitcount(B string) {
 			if(1 & (current_bytes >> j))
 				count++;
 		}
-//		if(i != (int)stream->length -1)
+//		if(i != string->length -1)
 //			printf(",");
 	}
 	return count;
@@ -262,7 +292,7 @@ void bitstring_print(B string) {
 				printf("1");
 			else printf("0");
 		}
-//		if(i != (int)stream->length -1)
+//		if(i != string->length -1)
 //			printf(",");
 	}
 }
