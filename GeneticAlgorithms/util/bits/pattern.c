@@ -66,6 +66,13 @@ pattern_B pattern_random(unsigned int size) {
 	return pattern;
 }
 
+void pattern_delete(pattern_B pattern) {
+	bitstring_delete(pattern->mask);
+	bitstring_delete(pattern->string);
+	free(pattern);
+	return;
+}
+
 pattern_B pattern_crossover(pattern_B patternA, pattern_B patternB){
 	assert(patternA);
 	assert(patternB);

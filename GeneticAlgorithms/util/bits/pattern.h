@@ -6,6 +6,7 @@ struct pattern_B;
 typedef struct pattern_B *pattern_B;
 
 pattern_B pattern_generate(char *str);
+void pattern_delete(pattern_B pattern);
 void pattern_print(pattern_B pattern);
 unsigned int pattern_strength(pattern_B pattern);
 pattern_B pattern_random(unsigned int size);

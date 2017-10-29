@@ -305,3 +305,27 @@ void bitstring_mutate(B string, unsigned int mutation_count, double mutation_pro
 }
 
 
+unsigned int bitstring_simmilarity(B stringA, B stringB) {
+	assert(bitstring_get_bitlength(stringA) == bitstring_get_bitlength(stringB));
+	
+	unsigned int i,j;
+	unsigned int result = 0;
+
+	for(i = 0; i <stringA->length; ++i) {
+		unsigned int max = 8;
+		if(i == stringA->length-1)
+			max = stringA->bits;
+		for(j = 0; j < max; ++j) {
+			if((bitstring_bittest(stringA, (i * 8 + j)) && bitstring_bittest(stringB, (i * 8 + j))) || (!bitstring_bittest(stringA, (i * 8 + j)) && !bitstring_bittest(stringB, (i * 8 + j)))) {
+				result++;
+			}
+		}
+//		if(i != (int)stream->length -1)
+//			printf(",");
+	}
+
+	return result;
+}
+
+
+

@@ -15,7 +15,8 @@ int main() {
         //printf("Inputting String ");
         //bitstring_print(string);
         //printf("\n");
-        printf("Loop[%d]\n", i);
+        //printf("Loop[%d]\n", i);
+	classifier_evolve(classifier, 100, 50, 0.03);
     }
 	classifier_printoutput(classifier);
 }

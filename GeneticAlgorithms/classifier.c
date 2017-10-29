@@ -48,6 +48,29 @@ struct classifier_element_B *classifier_elementrandom(unsigned int size) {
 	return elem;
 }
 
+void classifier_elementdelete(struct classifier_element_B *elem) {
+	bitstring_delete(elem->result);
+	pattern_delete(elem->pattern);
+	free(elem);
+	return;
+}
+
+struct classifier_element_B *classifier_elementcrossover(struct classifier_element_B *elemA, struct classifier_element_B *elemB) {
+	assert(bitstring_get_bitlength(elemA->result) == bitstring_get_bitlength(elemB->result));
+
+	struct classifier_element_B *elem;
+	elem = malloc(sizeof(*elem));
+
+	elem->result = bitstring_crossover(elemA->result, elemB->result, random_range(0, bitstring_get_bitlength(elemA->result)));
+	elem->pattern = pattern_crossover(elemA->pattern, elemB->pattern);
+	elem->fitness = random_range((elemA->fitness < elemB->fitness ? elemA->fitness : elemB->fitness),(elemA->fitness > elemB->fitness ? elemA->fitness : elemB->fitness));
+	elem->life = elem->fitness;
+	elem->output = (unsigned int) (elemB->output + elemA->output)/2;
+	elem->freq = 0;
+	return elem;
+}
+
+
 void classifier_elementprint(struct classifier_element_B *elem) {
 	pattern_print(elem->pattern);
 	printf(" -> ");
@@ -98,6 +121,8 @@ struct classifier_B *classifier_new(unsigned int size, unsigned int count) {
 	return result;
 }
 
+
+
 struct output_B *classifier_outputnew(struct classifier_element_B *pattern, list_L activators) {
 	struct output_B *msg;
 
@@ -139,6 +164,7 @@ struct message_B *classifier_messagenew(bitstring_B string, list_L activators) {
 	return msg;
 }
 
+
 void classifier_messagedelete(struct message_B *msg) {
 	bitstring_delete(msg->string);
 	list_delete(msg->activators, NULL);
@@ -163,6 +189,60 @@ void classifier_messagedelete(struct message_B *msg) {
 //
 void classifier_messageboard_insert(classifier_B classifier, bitstring_B string, list_L activators);
 void classifier_outputlist_insert(list_L outputlist, struct classifier_element_B *pattern, list_L activators);
+
+void classifier_messageboard_feedthrough(classifier_B classifier, list_L outputlist) {
+	while(list_length(classifier->message_board) > 0) {
+		struct message_B *msg = list_pop(classifier->message_board);
+		struct L_iterator patterns = list_iterator(classifier->elements);
+		while(list_iteratorhasnext(&patterns)) {
+			struct classifier_element_B *pattern = list_iteratornext(&patterns);
+			if(pattern_matches(pattern->pattern, msg->string, classifier->zeroref) && pattern->life > 0) {
+				pattern->life -= pattern_strength(pattern->pattern);
+				if(pattern->output) {
+					classifier_outputlist_insert(outputlist, pattern, msg->activators);
+				}
+				else {
+					pattern->freq++;
+					classifier_messageboard_insert(classifier, pattern->result, msg->activators);
+				}
+			}
+		}
+		classifier_messagedelete(msg);
+	}
+
+
+}
+
+void classifier_resetpopulationlife(classifier_B classifier) {
+    struct L_iterator patterns = list_iterator(classifier->elements);
+    while(list_iteratorhasnext(&patterns)) {
+			struct classifier_element_B *pattern = list_iteratornext(&patterns);
+        	pattern->life = pattern->fitness;
+    }
+}
+
+void classifier_coverinput(classifier_B classifier, bitstring_B input) {
+		struct classifier_element_B *elem;
+		elem = malloc(sizeof(*elem));
+
+		elem->result = bitstring_random(bitstring_get_bitlength(input));
+		elem->pattern = pattern_cover(input);
+		elem->fitness = random_range(0,20);
+		elem->life = elem->fitness;
+		elem->output = random_range(0,1) > 0.5 ? 1 : 0;
+		elem->freq = 1;
+
+		list_append(classifier->elements, elem);
+		if(classifier->output != NULL) {
+			bitstring_delete(classifier->output);
+		}
+		classifier->output = bitstring_copy(elem->result);
+
+}
+
+
+
+
 
 void classifier_update(classifier_B classifier, bitstring_B input) {
 	list_L outputlist = list_new();
@@ -194,44 +274,11 @@ void classifier_update(classifier_B classifier, bitstring_B input) {
 	//			max_fit = output.fit
 	//
 	//	classifier.output = output;
-	while(list_length(classifier->message_board) > 0) {
-		struct message_B *msg = list_pop(classifier->message_board);
-		struct L_iterator patterns = list_iterator(classifier->elements);
-		while(list_iteratorhasnext(&patterns)) {
-			struct classifier_element_B *pattern = list_iteratornext(&patterns);
-			if(pattern_matches(pattern->pattern, msg->string, classifier->zeroref) && pattern->life > 0) {
-				pattern->life -= pattern_strength(pattern->pattern);
-				if(pattern->output) {
-					classifier_outputlist_insert(outputlist, pattern, msg->activators);
-				}
-				else {
-					pattern->freq++;
-					classifier_messageboard_insert(classifier, pattern->result, msg->activators);
-				}
-			}
-		}
-		classifier_messagedelete(msg);
-	}
-
+	classifier_messageboard_feedthrough(classifier, outputlist);
 
 
 	if(list_length(outputlist) == 0) {
-		struct classifier_element_B *elem;
-		elem = malloc(sizeof(*elem));
-
-		elem->result = bitstring_random(bitstring_get_bitlength(input));
-		elem->pattern = pattern_cover(input);
-		elem->fitness = random_range(0,20);
-		elem->life = elem->fitness;
-		elem->output = random_range(0,1) > 0.5 ? 1 : 0;
-		elem->freq = 1;
-
-		list_append(classifier->elements, elem);
-
-		if(classifier->output != NULL) {
-			bitstring_delete(classifier->output);
-		}
-		classifier->output = bitstring_copy(elem->result);
+		classifier_coverinput(classifier, input);
 	}
 	else {
 		struct output_B *best = list_get(outputlist, 0);
@@ -278,15 +325,144 @@ void classifier_update(classifier_B classifier, bitstring_B input) {
 
 	}
 
-    struct L_iterator patterns = list_iterator(classifier->elements);
-    while(list_iteratorhasnext(&patterns)) {
-			struct classifier_element_B *pattern = list_iteratornext(&patterns);
-        	pattern->life = pattern->fitness;
-    }
+	classifier_resetpopulationlife(classifier);
+    
 
 
 	list_delete(outputlist, NULL);
 }
+
+
+void classifier_supervise(classifier_B classifier, bitstring_B input, bitstring_B expected) {
+	list_L outputlist = list_new();
+
+	classifier_messageboard_feedthrough(classifier, outputlist);
+
+	if(list_length(outputlist) == 0) {
+		classifier_coverinput(classifier, input);
+	}
+	else {
+		struct output_B *best = list_get(outputlist, 0);
+		float max_fit = bitstring_simmilarity(best->pattern->result, expected);
+
+		struct L_iterator outputlistiter = list_iterator(outputlist);
+
+		while(list_iteratorhasnext(&outputlistiter)) {
+			struct output_B *output = list_iteratornext(&outputlistiter);
+			float simmilarity = bitstring_simmilarity(output->pattern->result, expected);
+			if(simmilarity > max_fit) {
+				best = output;
+				max_fit = simmilarity;
+			}
+		}
+
+		if(classifier->output != NULL) {
+			bitstring_delete(classifier->output);
+		}
+		classifier->output = bitstring_copy(best->pattern->result);
+
+		best->pattern->fitness *= 1.05;
+		best->pattern->freq++;
+
+		outputlistiter = list_iterator(outputlist);
+
+		while(list_iteratorhasnext(&outputlistiter)) {
+			struct output_B *output = list_iteratornext(&outputlistiter);
+			struct L_iterator iter = list_iterator(output->activators);
+			if(output != best) {
+				output->pattern->fitness *= 0.99;
+				while(list_iteratorhasnext(&iter)) {
+					struct classifier_element_B *elem = list_iteratornext(&iter);
+					elem->fitness *= 0.99;
+					
+				}
+			} else {
+				while(list_iteratorhasnext(&iter)) {
+					struct classifier_element_B *elem = list_iteratornext(&iter);
+					elem->fitness *= 1.05;
+				}
+			}
+			classifier_outputdelete(output);
+		}
+
+	}
+
+	classifier_resetpopulationlife(classifier);
+
+	list_delete(outputlist, NULL);
+}
+
+
+
+void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsigned int mutation_count, double mutation_probability) {
+	// while size > clipping_size, eliminate randomly
+	// then for 1/4 the population size, mutate based on frequency
+	struct L_iterator elements_iter = list_iterator(classifer->elements);
+	double total = 0;
+	double avg = 0;
+	unsigned int total_freq = 0;
+	unsigned int count = 0;
+
+	while(list_iteratorhasnext(&elements_iter)) {
+		struct classifier_element_B *elem = list_iteratornext(&elements_iter);
+		total += (double)elem->fitness;
+		total_freq += elem->freq;
+		avg += (double)elem->fitness/(count == 0 ? 1 : count);
+		avg *= ((count == 0 ? 1 : count)/(count+1));
+		count++;
+	}
+
+
+	while(list_length(classifer->elements) > clipping_size) {
+		double elimination_cutoff = random_range(0, total);	
+		double current = 0;
+
+		struct L_iterator iter = list_iterator(classifer->elements);
+
+		struct classifier_element_B *elemA = NULL;
+		struct classifier_element_B *elemB = NULL;
+
+		while(list_iteratorhasnext(&iter) && current < elimination_cutoff) {
+			elemA = list_iteratornext(&elements_iter);
+			current += elemA->fitness;
+		}
+
+		list_remove(classifer->elements, elemA);
+		elimination_cutoff = random_range(0, total);	
+		current = 0;
+		iter = list_iterator(classifer->elements);
+
+		while(list_iteratorhasnext(&iter) && current < elimination_cutoff) {
+			elemB = list_iteratornext(&elements_iter);
+			current += elemB->fitness;
+		}
+		list_remove(classifer->elements, elemB);
+		struct classifier_element_B *elemC = classifier_elementcrossover(elemA, elemB);
+		list_append(classifer->elements, elemC);
+		classifier_elementdelete(elemA);
+		classifier_elementdelete(elemB);
+	}
+
+	unsigned int i;
+
+	for(i = 0; i < clipping_size/4; ++i){
+		unsigned int freq_val = random_range(0, total_freq);
+		unsigned int current = 0;
+		struct L_iterator iter = list_iterator(classifer->elements);
+		struct classifier_element_B *elemA = NULL;
+
+		while(list_iteratorhasnext(&iter) && current < freq_val) {
+			elemA = list_iteratornext(&elements_iter);
+			current += elemA->freq;
+		}
+
+		elemA->output = random_range(0,1) > 0.5 + (elemA->output ? 0.1 : -0.1) ? 0 : 1;
+		bitstring_mutate(elemA->result, mutation_count, mutation_probability);
+		pattern_mutate(elemA->pattern, mutation_count, mutation_probability);
+	}
+	
+}
+
 
 void classifier_messageboard_insert(classifier_B classifier, bitstring_B string, list_L activators) {
 	// for msg_B in message_board:
