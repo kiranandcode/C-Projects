@@ -143,13 +143,13 @@ void classifier_outputdelete(struct output_B *msg) {
 }
 
 void classifier_printoutput(classifier_B classifier) {
-	printf("OUTPUT:\n");
-	printf("\t");
+	//printf("OUTPUT:\n");
+	//printf("\t");
 	if(classifier->output == NULL)
 		printf("NULL");
 	else
 		bitstring_print(classifier->output);
-	printf("\n");
+	//printf("\n");
 }
 
 

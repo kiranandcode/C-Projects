@@ -21,7 +21,3 @@ list.o: list.h
 set.o: set.h list.h
 random.o: random.h
 
-
-
-
-

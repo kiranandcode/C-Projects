@@ -328,4 +328,65 @@ unsigned int bitstring_simmilarity(B stringA, B stringB) {
 }
 
 
+unsigned int bitstring_asbuckets(B stringA, unsigned int buckets) {
+	assert(stringA);
+	assert(buckets <= bitstring_get_bitlength(stringA));
 
+	unsigned int total_size = bitstring_get_bitlength(stringA);
+
+	unsigned int last_bucket_start = 0;
+	unsigned int bucket_size = total_size / buckets;
+	unsigned int current_bucket = 0;
+	unsigned int current_bucket_score = 0;
+	unsigned int best_bucket = 0;
+	unsigned int best_bucket_score = 0;
+	unsigned int i;
+
+	for(i = 0; i < total_size; i++) {
+		//printf("checking i(%d) - last_bucket_start(%d) = (%d) >= bucket_size (%d)\n", i, last_bucket_start, i - last_bucket_start, bucket_size);
+		if(i - last_bucket_start >= bucket_size) {
+			last_bucket_start = i;
+			if(current_bucket_score > best_bucket_score) {
+				best_bucket_score = current_bucket_score;
+				best_bucket = current_bucket;
+			}
+			current_bucket_score = 0;
+			current_bucket++;
+
+		} 
+		if(bitstring_bittest(stringA, i)) {
+			current_bucket_score++;
+		}
+
+	}
+	if(current_bucket_score > best_bucket_score) {
+		best_bucket_score = current_bucket_score;
+		best_bucket = current_bucket;
+	}
+
+
+	return best_bucket;
+}
+
+bitstring_B bitstring_newbucketstring(unsigned int size, unsigned int buckets, unsigned int index) {
+	assert(index < buckets);
+	assert(size >= buckets);
+	assert(size >= 0);
+
+	bitstring_B result = bitstring_new(size);
+	unsigned int bits_per_bucket = size / buckets;
+	unsigned int bits_of_last_bucket = 0;
+	unsigned int current_bucket = 0;
+	unsigned int i = 0;
+	for(i = 0; i < size; ++i) {
+		if(i - bits_of_last_bucket > bits_per_bucket) {
+			bits_of_last_bucket = i;
+			current_bucket++;	
+		}
+		if(current_bucket == index) {
+			bitstring_bitset(result, i);
+		}
+	}
+
+	return result;
+}
