@@ -423,7 +423,8 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 		struct classifier_element_B *elemB = NULL;
 
 		while(list_iteratorhasnext(&iter) && current < elimination_cutoff) {
-			elemA = list_iteratornext(&elements_iter);
+			elemA = list_iteratornext(&iter);
+			if(elemA != NULL)
 			current += elemA->fitness;
 		}
 
@@ -433,7 +434,8 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 		iter = list_iterator(classifer->elements);
 
 		while(list_iteratorhasnext(&iter) && current < elimination_cutoff) {
-			elemB = list_iteratornext(&elements_iter);
+			elemB = list_iteratornext(&iter);
+            if(elemB != NULL)
 			current += elemB->fitness;
 		}
 		list_remove(classifer->elements, elemB);
@@ -446,19 +448,21 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 	unsigned int i;
 
 	for(i = 0; i < clipping_size/4; ++i){
-		unsigned int freq_val = random_range(0, total_freq);
-		unsigned int current = 0;
+		double freq_val = random_range(0, total_freq);
+		double current = 0;
 		struct L_iterator iter = list_iterator(classifer->elements);
 		struct classifier_element_B *elemA = NULL;
 
 		while(list_iteratorhasnext(&iter) && current < freq_val) {
-			elemA = list_iteratornext(&elements_iter);
+			elemA = list_iteratornext(&iter);
+			if(elemA != NULL)
 			current += elemA->freq;
 		}
-
-		elemA->output = random_range(0,1) > 0.5 + (elemA->output ? 0.1 : -0.1) ? 0 : 1;
-		bitstring_mutate(elemA->result, mutation_count, mutation_probability);
-		pattern_mutate(elemA->pattern, mutation_count, mutation_probability);
+		if(elemA != NULL) {
+			elemA->output = random_range(0, 1) > 0.5 + (elemA->output ? 0.1 : -0.1) ? 0 : 1;
+			bitstring_mutate(elemA->result, mutation_count, mutation_probability);
+			pattern_mutate(elemA->pattern, mutation_count, mutation_probability);
+		}
 	}
 	
 }
