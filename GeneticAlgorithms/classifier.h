@@ -8,8 +8,10 @@ typedef struct B *B;
 struct classifier_B *classifier_new(unsigned int size, unsigned int count);
 void classifier_print(struct classifier_B *classifier);
 void classifier_printoutput(classifier_B classifier);
+void classifier_supervise(classifier_B classifier, bitstring_B input, bitstring_B expected);
 void classifier_input(struct classifier_B *classifier, bitstring_B input);
 void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsigned int mutation_count, double mutation_probability);
+bitstring_B classifier_getoutput(classifier_B classifier);
 
 #undef B
 #endif

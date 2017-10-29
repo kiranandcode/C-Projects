@@ -5,9 +5,82 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
+bitstring_B expected_inputs[10];
+
+void initialize_expected_inputs() {
+	int i;
+	for(i = 0; i < 10; i++) {
+		expected_inputs[i] = bitstring_newbucketstring(28*28*8, 10, i);
+	}
+}
+
+int read_and_train(FILE *fp, classifier_B classifier, int should_evolve) {
+	
+	int label;
+	fscanf(fp, "%d,", &label);
+
+	assert(label < 10 && label >= 0);
+	bitstring_B expected = expected_inputs[label];
+
+	bitstring_B input = bitstring_csv_fload(fp, 28 * 28);
+	
+	classifier_supervise(classifier, input, expected);
+
+	if(should_evolve)
+		classifier_evolve(classifier, 80, 40, 0.03);
+
+	
+	bitstring_delete(input);
+
+	char c;
+	if((c = getc(fp)) == EOF)
+		return 0;
+	else {
+		ungetc(c,fp);
+		return 1;
+	}
+}
+
+int read_and_check(FILE *fp, classifier_B classifier, int *correct) {
+	int label;
+	fscanf(fp, "%d,", &label);
+
+	assert(label < 10 && label >= 0);
+
+	bitstring_B input = bitstring_csv_fload(fp, 28 * 28);
+	
+	classifier_input(classifier, input);
+
+	bitstring_delete(input);
+
+	bitstring_B output = classifier_getoutput(classifier);
+	unsigned int guess = bitstring_asbuckets(output, 10);
+	printf("Outputted %d for %d\n", guess, label);
+	
+
+	if(correct != NULL) {
+	if(guess == (unsigned int) label) {
+		*correct = 1;	
+	} else
+		*correct = 0;
+	} else {
+		bitstring_print(output);
+	}
+
+	char c;
+	if((c = getc(fp)) == EOF)
+		return 0;
+	else {
+		return 1;
+	}
+}
+
 
 
 int main() {
+	initialize_expected_inputs();
 	/*
 	bitstring_B stringA = bitstring_random(20);
         bitstring_B stringB = bitstring_random(20);
@@ -42,11 +115,35 @@ int main() {
 
 	*/
 
-	FILE *fp = fopen("test.csv", "r");
+	FILE *fp = fopen("mnist.csv", "r");
 
-	bitstring_B result = bitstring_csv_fload(fp, 5);
+	classifier_B classifier =classifier_new(8*28*28,100);
+	int i;
+	for(i =0 ; i< 900; i++) {
+		read_and_train(fp, classifier, i % 3 == 0);
+	}
+
+	for(int j =0; j< 100; j++) {
+		fclose(fp);
+		fp = fopen("mnist.csv", "r");
+
+		printf("training iteration %d\n", j);
+		for(i =0 ; i< 900; i++) {
+			read_and_train(fp, classifier, i % 7 == 0);
+		}
+
+	}
+
+	int correct = 0;
+	for(i =0 ; i < 100; i++) {
+		int current = 0;
+		read_and_check(fp, classifier, &current);
+		correct += current;
+	}
+
+
+	printf("Out of 100 test %d correct\n", correct);
 	
-	bitstring_print(result);
-	
+	read_and_check(fp, classifier, NULL);
 
 }

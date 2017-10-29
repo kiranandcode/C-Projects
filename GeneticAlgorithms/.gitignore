@@ -2,3 +2,5 @@
 *.swn
 *.swp
 *.swl
+*.swo
+mnist.csv

@@ -544,3 +544,6 @@ void classifier_input(classifier_B classifier, bitstring_B input) {
 }
 
 
+bitstring_B classifier_getoutput(classifier_B classifier) {
+	return classifier->output;
+}
