@@ -29,7 +29,7 @@ int read_and_train(FILE *fp, classifier_B classifier, int should_evolve) {
 	classifier_supervise(classifier, input, expected);
 
 	if(should_evolve)
-		classifier_evolve(classifier, 80, 40, 0.03);
+		classifier_evolve(classifier, 100, 24*24*8, 0.5);
 
 	
 	bitstring_delete(input);
@@ -42,6 +42,34 @@ int read_and_train(FILE *fp, classifier_B classifier, int should_evolve) {
 		return 1;
 	}
 }
+int read_and_initialize(FILE *fp, classifier_B classifier, int should_evolve) {
+	
+	int label;
+	fscanf(fp, "%d,", &label);
+
+	assert(label < 10 && label >= 0);
+
+	bitstring_B input = bitstring_csv_fload(fp, 28 * 28);
+	
+	classifier_input(classifier, input);
+
+	if(should_evolve)
+		classifier_evolve(classifier, 500, 24*24*8, 0.5);
+
+	
+	bitstring_delete(input);
+
+	char c;
+	if((c = getc(fp)) == EOF)
+		return 0;
+	else {
+		ungetc(c,fp);
+		return 1;
+	}
+}
+
+
+
 
 int read_and_check(FILE *fp, classifier_B classifier, int *correct) {
 	int label;
@@ -117,19 +145,20 @@ int main() {
 
 	FILE *fp = fopen("mnist.csv", "r");
 
-	classifier_B classifier =classifier_new(8*28*28,100);
+	classifier_B classifier =classifier_new(8*28*28,10000);
 	int i;
-	for(i =0 ; i< 900; i++) {
-		read_and_train(fp, classifier, i % 3 == 0);
+	for(i =0 ; i< 1000; i++) {
+		printf("initialization iteration %d\n", i);
+		read_and_initialize(fp, classifier, i%41 == 0);
 	}
 
-	for(int j =0; j< 100; j++) {
+	for(int j =0; j< 30; j++) {
 		fclose(fp);
 		fp = fopen("mnist.csv", "r");
 
-		printf("training iteration %d\n", j);
+			printf("training iteration %d\n", j);
 		for(i =0 ; i< 900; i++) {
-			read_and_train(fp, classifier, i % 7 == 0);
+			read_and_train(fp, classifier, i%50 == 0);
 		}
 
 	}
@@ -144,6 +173,6 @@ int main() {
 
 	printf("Out of 100 test %d correct\n", correct);
 	
-	read_and_check(fp, classifier, NULL);
+//	read_and_check(fp, classifier, NULL);
 
 }

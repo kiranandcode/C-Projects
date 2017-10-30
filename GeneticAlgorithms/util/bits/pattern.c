@@ -173,7 +173,7 @@ void pattern_mutate(pattern_B pattern, unsigned int mutation_count, double mutat
 	for(i = 0; i< mutation_count; ++i) {
 		if(random_normal(0,1) < mutation_probability) {
             bitstring_B string;
-			if (random_normal(0, 1) > 0.5)
+			if (random_normal(0, 1) < 0.6)
 				string = pattern->mask;
 			else
 				string = pattern->string;
