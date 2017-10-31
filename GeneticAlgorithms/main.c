@@ -152,7 +152,7 @@ int main() {
 		read_and_initialize(fp, classifier, i%41 == 0);
 	}
 
-	for(int j =0; j< 30; j++) {
+	for(int j =0; j< 500; j++) {
 		fclose(fp);
 		fp = fopen("mnist.csv", "r");
 

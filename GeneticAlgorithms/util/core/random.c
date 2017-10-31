@@ -38,6 +38,10 @@ double random_normal(double low, double high) {
 }
 
 double random_range(double low, double high) {
+	if(high <= low) {
+		printf("low(%lf) < high(%lf)\n", low,high);
+		return 0;
+	}
 	assert(high > low);
 	initialize_rand();
 	double range = high - low;

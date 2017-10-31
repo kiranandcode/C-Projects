@@ -42,8 +42,9 @@ struct classifier_element_B *classifier_elementrandom(unsigned int size) {
 	elem->result = bitstring_random(size);
 	elem->pattern = pattern_random(size);
 	elem->fitness = random_range(5,20);
-	elem->life = elem->fitness;
-	elem->output = random_range(0,1) > 0.5 ? 1 : 0;
+	elem->life = elem->fitness * 10;
+	int output = random_range(0,1) > 0.5 ? 1 : 0;
+	elem->output = output;
 	elem->freq = 0;
 	return elem;
 }
@@ -63,9 +64,9 @@ struct classifier_element_B *classifier_elementcrossover(struct classifier_eleme
 
 	elem->result = bitstring_crossover(elemA->result, elemB->result, random_range(0, bitstring_get_bitlength(elemA->result)));
 	elem->pattern = pattern_crossover(elemA->pattern, elemB->pattern);
-	elem->fitness = random_range((elemA->fitness < elemB->fitness ? elemA->fitness : elemB->fitness),(elemA->fitness > elemB->fitness ? elemA->fitness : elemB->fitness));
-	elem->life = elem->fitness;
-	elem->output = (unsigned int) (elemB->output + elemA->output)/2;
+	elem->fitness = random_range((elemA->fitness < elemB->fitness ? elemA->fitness : elemB->fitness),(elemA->fitness > elemB->fitness ? elemA->fitness : elemB->fitness) + 1);
+	elem->life = elem->fitness * 10;
+	elem->output =  (elemB->output + elemA->output)/2 > 0.5 ? 1 : 0;
 	elem->freq = 0;
 	return elem;
 }
@@ -191,14 +192,15 @@ void classifier_messageboard_insert(classifier_B classifier, bitstring_B string,
 void classifier_outputlist_insert(list_L outputlist, struct classifier_element_B *pattern, list_L activators);
 
 void classifier_messageboard_feedthrough(classifier_B classifier, list_L outputlist) {
-	double i = 1.01;
+	double i = 1.001;
 	while(list_length(classifier->message_board) > 0) {
 //		printf("Message_board length %d\n", list_length(classifier->message_board));
 		struct message_B *msg = list_pop(classifier->message_board);
 		struct L_iterator patterns = list_iterator(classifier->elements);
 		while(list_iteratorhasnext(&patterns)) {
 			struct classifier_element_B *pattern = list_iteratornext(&patterns);
-			if(pattern_matches(pattern->pattern, msg->string, classifier->zeroref)) {
+			if(pattern_matches(pattern->pattern, msg->string, classifier->zeroref) && pattern->life > 0) {
+				printf("Pattern with %d -> %s\n", pattern->life, pattern->output ? "OUTPUT" : "FEEDTHROUGH");
 				pattern->life -= 1; //pattern_strength(pattern->pattern)/bitstring_get_bitlength(pattern->output);
 				if(pattern->output) {
 					printf("Inserting into outputlist\n");
@@ -206,11 +208,11 @@ void classifier_messageboard_feedthrough(classifier_B classifier, list_L outputl
 				}
 				else {
 					pattern->freq++;
-					pattern->fitness *= i;
-					i *= i;
+					//pattern->fitness *= i;
+					//i *= i;
 					classifier_messageboard_insert(classifier, pattern->result, msg->activators);
 				}
-			}
+			} 
 		}
 		classifier_messagedelete(msg);
 	}
@@ -222,7 +224,7 @@ void classifier_resetpopulationlife(classifier_B classifier) {
     struct L_iterator patterns = list_iterator(classifier->elements);
     while(list_iteratorhasnext(&patterns)) {
 			struct classifier_element_B *pattern = list_iteratornext(&patterns);
-        	pattern->life = pattern->fitness;
+        	pattern->life = (int)pattern->fitness * 10;
     }
 }
 
@@ -233,7 +235,7 @@ void classifier_coverinput(classifier_B classifier, bitstring_B input, bitstring
 		elem->result = bitstring_random(bitstring_get_bitlength(input));
 		elem->pattern = pattern_cover(input);
 		elem->fitness = random_range(5,20);
-		elem->life = elem->fitness*10;
+		elem->life = (int)elem->fitness * 10;
 		elem->output = random_range(0,1) > 0.5 ? 1 : 0;
 		elem->freq = 1;
 
@@ -250,7 +252,9 @@ void classifier_coverinput(classifier_B classifier, bitstring_B input, bitstring
 			bitstring_delete(classifier->output);
 		}
 		classifier->output = bitstring_copy(elem->result);
+
 		if(!elem->output) {
+			classifier_resetpopulationlife(classifier);
 			if(expected != NULL) {
 				classifier_supervise(classifier, input, expected);
 			}
@@ -362,7 +366,7 @@ void classifier_supervise(classifier_B classifier, bitstring_B input, bitstring_
 
 	if(list_length(outputlist) == 0) {
 
-//		printf("Covering input\n");
+		printf("Covering input\n");
 		classifier_coverinput(classifier, input, expected);
 	}
 	else {
@@ -509,7 +513,7 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 	iterations = 0;
 	while(list_length(classifer->elements) > clipping_size && iterations < 10000) {
 		//iterations++;
-		double elimination_cutoff = random_range(0, total);	
+		double elimination_cutoff = random_range(0, (total > 0 ? total : 1));	
 		double current = 0;
 
 		struct L_iterator iter = list_iterator(classifer->elements);
@@ -527,7 +531,7 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 		}
 
 		list_remove(classifer->elements, elemA);
-		elimination_cutoff = random_range(0, total);	
+		elimination_cutoff = random_range(0, (total > 0 ? total : 1));	
 		current = 0;
 		iter = list_iterator(classifer->elements);
 
@@ -550,7 +554,7 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 	unsigned int i;
 
 	for(i = 0; i < clipping_size/4; ++i){
-		double freq_val = random_range(0, total_freq/2 > 0 ? total_freq/2  : total_freq);
+		double freq_val = random_range(0, total_freq/2 > 0 ? total_freq/2  : (total_freq > 0 ? total_freq : 1));
 		double current = 0;
 		struct L_iterator iter = list_iterator(classifer->elements);
 		struct classifier_element_B *elemA = NULL;
@@ -564,7 +568,7 @@ void classifier_evolve(classifier_B classifer, unsigned int clipping_size, unsig
 			}
 		}
 		if(elemA != NULL) {
-			elemA->output = random_range(0, 1) > 0.5 + (elemA->output ? 0.1 : -0.1) ? 0 : 1;
+			elemA->output = (random_range(0, 1) > (0.5 + (elemA->output ? 0.1 : -0.1))) ? 0 : 1;
 			bitstring_mutate(elemA->result, mutation_count, mutation_probability);
 			pattern_mutate(elemA->pattern, mutation_count, mutation_probability);
 		}
