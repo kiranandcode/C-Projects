@@ -46,9 +46,13 @@ if(*rcp == '\n' || *rcp == '\v' || *rcp == '\f' || *rcp == '\r'){
 			filebuffer_fillbuf(buffer);
 			rcp = (unsigned char *)filebuffer_cp(buffer);
 	}
-	if(*rcp == '*' && *(rcp + 1) == '/') {
-		filebuffer_setcp(buffer, (char *)rcp + 2);
-		break;
+	if(*rcp == '*')  {
+		if(*(rcp + 1) == '/') {
+			filebuffer_setcp(buffer, (char *)rcp + 2);
+			break;
+		} else {
+			rcp++;
+		}
 	}
 					}
 					continue;
