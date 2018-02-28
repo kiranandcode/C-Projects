@@ -7,6 +7,8 @@
 
 
 void Expression() {
+	// LL(1) parser
+	// using 1 token lookahead here to check whether to parse ('+') or parse terms
 	if(IsAddop(Look)){
 		EmitLn("CLR D0");
 	}
